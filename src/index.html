@@ -16,8 +16,11 @@
 
   <script>
     (async function() {
+      alert("Calling the API");
       const { text } = await fetch(`/api/message`).json();
+      alert("API returned " + text);
       document.querySelector('#name').textContent = text;
+      alert("Document updated");
     }());
   </script>
 </body>
