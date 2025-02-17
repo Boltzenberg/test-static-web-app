@@ -19,7 +19,7 @@
       var ctrl = document.querySelector('#name');
 
       try {
-        const response = await fetch('/api/message');
+        const response = await fetch('http://localhost:7071/api/message');
         if (response.ok) {
           const data = await response.text();
           ctrl.textContent = data;
