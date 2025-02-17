@@ -16,11 +16,21 @@
 
   <script>
     (async function() {
-      alert("Calling the API");
-      const { text } = await fetch(`/api/message`).json();
-      alert("API returned " + text);
-      document.querySelector('#name').textContent = text;
-      alert("Document updated");
+      var ctrl = document.querySelector('#name');
+      alert(ctrl);
+
+      try {
+        const response = await fetch('https://icy-desert-022a66a1e.4.azurestaticapps.net/api/message');
+        if (response.ok) {
+          const data = await response.json();
+          alert(data);
+          ctrl.textContent = data;
+        } else {
+          alert(response);
+        }
+      } catch (error) {
+        alert("Exception: " + error);
+      }
     }());
   </script>
 </body>
