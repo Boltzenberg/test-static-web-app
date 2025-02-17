@@ -20,9 +20,9 @@
       alert(ctrl);
 
       try {
-        const response = await fetch('https://icy-desert-022a66a1e.4.azurestaticapps.net/api/message');
+        const response = await fetch('/api/message');
         if (response.ok) {
-          const data = await response.json();
+          const data = await response.text();
           alert(data);
           ctrl.textContent = data;
         } else {
