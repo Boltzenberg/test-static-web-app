@@ -17,13 +17,11 @@
   <script>
     (async function() {
       var ctrl = document.querySelector('#name');
-      alert(ctrl);
 
       try {
         const response = await fetch('/api/message');
         if (response.ok) {
           const data = await response.text();
-          alert(data);
           ctrl.textContent = data;
         } else {
           alert(response);
