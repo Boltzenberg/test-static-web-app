@@ -18,7 +18,13 @@ namespace Boltzenberg.Functions
         public IActionResult Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequest req)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
-            return new OkObjectResult("Welcome to Azure Functions!");
+
+            var responseMessage = new
+            {
+                message = "Welcome to Azure Fucntions!"
+            };
+
+            return new JsonResult(responseMessage);
         }
     }
 }
