@@ -24,6 +24,8 @@
   <div id="results"></div><br>
 
   <script>
+    let LIST_ID = "1";
+
     function updateCheckboxes(updateGroceryListPayload) {
      //alert("Updating Checkboxes on " + updateGroceryListPayload);
 
@@ -98,29 +100,34 @@
       };
       document.getElementById('results').innerText = JSON.stringify(payload);
 
-      /*
       fetch('/api/UpdateGroceryList', {
         method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'X-List-ID': LIST_ID
         },
         body: JSON.stringify(payload)
       })
       .then(response => response.json())
       .then(data => updateCheckboxes(data))
       .catch(error => alert(error));
-      */
     });
 
+    /*
     (function() {
       var payload = JSON.parse('{"ToAdd":[{"Item":"Item 1"},{"Item":"Item 2"},{"Item":"Item 3"},{"Item":"Item 4"},{"Item":"Item 5"},{"Item":"Item 6"}],"ToRemove":[]}');
       updateCheckboxes(payload);
     }());
+    */
 
-    /*
     (async function() {
       try {
-        const response = await fetch('/api/UpdateGroceryList');
+        const response = await fetch('/api/UpdateGroceryList', {
+          method: "GET",
+          headers: {
+            'X-List-ID': LIST_ID
+          }
+        });
         if (response.ok) {
           const data = await response.json();
           //alert(data);
@@ -132,7 +139,6 @@
         alert("Exception: " + error);
       }
     }());
-    */
   </script>
 </body>
 

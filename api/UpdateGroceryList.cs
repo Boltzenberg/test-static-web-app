@@ -21,6 +21,11 @@ namespace Boltzenberg.Functions
         public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequest req)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
+            string listId = req.Headers["X-List-ID"];
+            if (string.IsNullOrEmpty(listId))
+            {
+                return new BadRequestObjectResult("X-List-ID header is required");
+            }
 
             List<GroceryListItem> dataset = GroceryListItem.GetCannedItems();
 
