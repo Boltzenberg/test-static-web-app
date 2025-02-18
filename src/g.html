@@ -36,24 +36,20 @@
 
       // Now add back the ToAdd items
       updateGroceryListPayload.ToAdd.forEach(element => {
-        if (!element.IsDeleted) {
-         // alert("Creating checkbox for " + element.Item);
+        // alert("Creating checkbox for " + element.Item);
 
-          const checkbox = document.createElement('input');
-          checkbox.type = 'checkbox';
-          checkbox.id = 'checkbox' + container.getElementsByTagName('input').length;
-          checkbox.dataset.json = JSON.stringify(element);
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = 'checkbox' + container.getElementsByTagName('input').length;
+        checkbox.dataset.json = JSON.stringify(element);
 
-          const label = document.createElement('label');
-          label.htmlFor = checkbox.id;
-          label.appendChild(document.createTextNode(element.Item));
+        const label = document.createElement('label');
+        label.htmlFor = checkbox.id;
+        label.appendChild(document.createTextNode(element.Item));
 
-          container.appendChild(checkbox);
-          container.appendChild(label);
-          container.appendChild(document.createElement('br'));
-        } else {
-         // alert("Skipping " + element.Item + " because it is deleted");
-        }
+        container.appendChild(checkbox);
+        container.appendChild(label);
+        container.appendChild(document.createElement('br'));
       });
     }
 
@@ -68,11 +64,9 @@
 
       let toAdd = new Array();
       if (singleAdd) {
-        alert("Adding " + singleAdd);
+        //alert("Adding " + singleAdd);
         let item = {
-          ListId: 1,
           Item: singleAdd,
-          IsDeleted: false
         };
         toAdd.push(item);
       }
@@ -80,11 +74,9 @@
       if (multiAdd) {
         const lines = multiAdd.split(/\r?\n/);
         lines.forEach(line => {
-          alert("Adding " + line);
+          //alert("Adding " + line);
           let item = {
-            ListId: 1,
             Item: line,
-            IsDeleted: false
           };
           toAdd.push(item);
         });
@@ -94,9 +86,8 @@
       const container = document.getElementById('checkboxContainer');
       Array.from(container.getElementsByTagName('input')).forEach(element => {
         if (element.checked) {
-          alert("Adding " + element.dataset.json + " to delete list");
+          //alert("Adding " + element.dataset.json + " to delete list");
           var item = JSON.parse(element.dataset.json);
-          item.IsDeleted = true;
           toRemove.push(item);
         }
       });
@@ -107,6 +98,7 @@
       };
       document.getElementById('results').innerText = JSON.stringify(payload);
 
+      /*
       fetch('/api/UpdateGroceryList', {
         method: "POST",
         headers: {
@@ -117,20 +109,21 @@
       .then(response => response.json())
       .then(data => updateCheckboxes(data))
       .catch(error => alert(error));
+      */
     });
 
-    /*
     (function() {
-      var payload = JSON.parse('{"ToAdd":[{"ListId":1,"Item":"Item 1","IsDeleted":true},{"ListId":1,"Item":"Item 2","IsDeleted":false},{"ListId":1,"Item":"Item 3","IsDeleted":false},{"ListId":1,"Item":"Item 4","IsDeleted":false},{"ListId":1,"Item":"Item 5","IsDeleted":true},{"ListId":1,"Item":"Item 6","IsDeleted":false}],"ToRemove":[]}');
+      var payload = JSON.parse('{"ToAdd":[{"Item":"Item 1"},{"Item":"Item 2"},{"Item":"Item 3"},{"Item":"Item 4"},{"Item":"Item 5"},{"Item":"Item 6"}],"ToRemove":[]}');
       updateCheckboxes(payload);
     }());
-    */
 
+    /*
     (async function() {
       try {
         const response = await fetch('/api/UpdateGroceryList');
         if (response.ok) {
           const data = await response.json();
+          //alert(data);
           updateCheckboxes(data);
         } else {
           alert(response);
@@ -139,6 +132,7 @@
         alert("Exception: " + error);
       }
     }());
+    */
   </script>
 </body>
 

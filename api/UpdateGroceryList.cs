@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
+using Boltzenberg.Functions.DataModels.GroceryList;
 
 namespace Boltzenberg.Functions
 {
@@ -33,7 +34,7 @@ namespace Boltzenberg.Functions
                     {
                         foreach (GroceryListItem item in reqBody.ToRemove)
                         {
-                            GroceryListItem itemToRemove = dataset.Where(i => !i.IsDeleted && i.ListId == item.ListId && i.Item == item.Item).FirstOrDefault();
+                            GroceryListItem itemToRemove = dataset.Where(i => i.Item == item.Item).FirstOrDefault();
                             if (itemToRemove != null)
                             {
                                 dataset.Remove(itemToRemove);

@@ -1,4 +1,4 @@
-namespace Boltzenberg.Functions
+namespace Boltzenberg.Functions.DataModels.GroceryList
 {
     public class UpdateGroceryListPayload
     {
