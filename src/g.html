@@ -24,9 +24,9 @@
   <div id="results"></div><br>
 
   <script>
-    let LIST_ID = "1";
+    let LIST_ID = "Test";
 
-    function updateCheckboxes(updateGroceryListPayload) {
+    function updateCheckboxes(groceryListItems) {
      //alert("Updating Checkboxes on " + updateGroceryListPayload);
 
       const container = document.getElementById('checkboxContainer');
@@ -37,7 +37,7 @@
       }
 
       // Now add back the ToAdd items
-      updateGroceryListPayload.ToAdd.forEach(element => {
+      groceryListItems.forEach(element => {
         // alert("Creating checkbox for " + element.Item);
 
         const checkbox = document.createElement('input');
@@ -111,11 +111,12 @@
       .then(response => response.json())
       .then(data => updateCheckboxes(data))
       .catch(error => alert(error));
+
     });
 
     /*
     (function() {
-      var payload = JSON.parse('{"ToAdd":[{"Item":"Item 1"},{"Item":"Item 2"},{"Item":"Item 3"},{"Item":"Item 4"},{"Item":"Item 5"},{"Item":"Item 6"}],"ToRemove":[]}');
+      var payload = JSON.parse('[{"Item":"Item 1"},{"Item":"Item 2"},{"Item":"Item 3"},{"Item":"Item 4"},{"Item":"Item 5"},{"Item":"Item 6"}]');
       updateCheckboxes(payload);
     }());
     */

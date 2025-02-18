@@ -27,7 +27,7 @@ namespace Boltzenberg.Functions
                 return new BadRequestObjectResult("X-List-ID header is required");
             }
 
-            List<GroceryListItem> dataset = GroceryListItem.GetCannedItems();
+            GroceryListDB dataset = GroceryListDB.GetCannedDB(listId);
 
             if (req.Method.ToLowerInvariant() == "post")
             {
@@ -39,26 +39,23 @@ namespace Boltzenberg.Functions
                     {
                         foreach (GroceryListItem item in reqBody.ToRemove)
                         {
-                            GroceryListItem itemToRemove = dataset.Where(i => i.Item == item.Item).FirstOrDefault();
+                            GroceryListItem itemToRemove = dataset.Items.Where(i => i.Item == item.Item).FirstOrDefault();
                             if (itemToRemove != null)
                             {
-                                dataset.Remove(itemToRemove);
+                                dataset.Items.Remove(itemToRemove);
                             }
                         }
 
                         foreach (GroceryListItem item in reqBody.ToAdd)
                         {
-                            dataset.Add(item);
+                            dataset.Items.Add(item);
                         }
                     }
                 }
             }
 
-            UpdateGroceryListPayload response = new UpdateGroceryListPayload();
-            response.ToAdd = dataset;
-            response.ToRemove = new List<GroceryListItem>();
-
-            return new OkObjectResult(JsonSerializer.Serialize(response));
+            string response = JsonSerializer.Serialize(dataset.Items);
+            return new OkObjectResult(response);
         }
     }
 }
