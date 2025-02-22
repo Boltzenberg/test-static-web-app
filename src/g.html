@@ -53,6 +53,13 @@
         container.appendChild(label);
         container.appendChild(document.createElement('br'));
       });
+
+      const multiAdd = document.getElementById('multi-add');
+      multiAdd.value = '';
+
+      const singleAdd = document.getElementById('single-add');
+      singleAdd.value = '';
+      singleAdd.focus();
     }
 
 
@@ -98,7 +105,7 @@
         ToAdd: toAdd,
         ToRemove: toRemove
       };
-      document.getElementById('results').innerText = JSON.stringify(payload);
+      //document.getElementById('results').innerText = JSON.stringify(payload);
 
       fetch('/api/UpdateGroceryList', {
         method: "POST",
@@ -111,7 +118,6 @@
       .then(response => response.json())
       .then(data => updateCheckboxes(data))
       .catch(error => alert(error));
-
     });
 
     /*
@@ -134,7 +140,7 @@
           //alert(data);
           updateCheckboxes(data);
         } else {
-          alert(response);
+          alert(response.statusText);
         }
       } catch (error) {
         alert("Exception: " + error);
