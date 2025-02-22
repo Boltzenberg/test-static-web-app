@@ -19,7 +19,7 @@
 
     <lable for="multi-add">Add Multiple Items:</lable><br>
     <textarea id="multi-add" name="multi-add" rows="4" cols="50"></textarea><br>
-    <input type="submit" value="Submit"><br>
+    <input type="submit" value="Update"><br>
   </form>
   <div id="results"></div><br>
 
@@ -35,6 +35,9 @@
       while (container.firstChild) {
         container.removeChild(container.firstChild);
       }
+
+      // Sort the grocery list
+      groceryListItems.sort((a, b) => a.Item.toLowerCase().localeCompare(b.Item.toLowerCase()));
 
       // Now add back the ToAdd items
       groceryListItems.forEach(element => {
@@ -122,12 +125,15 @@
 
     /*
     (function() {
-      var payload = JSON.parse('[{"Item":"Item 1"},{"Item":"Item 2"},{"Item":"Item 3"},{"Item":"Item 4"},{"Item":"Item 5"},{"Item":"Item 6"}]');
+      var payload = JSON.parse('[{"Item":"Bananas"},{"Item":"Apples"},{"Item":"Zoo"},{"Item":"Cherries"},{"Item":"Cat"},{"Item":"Dog"}]');
       updateCheckboxes(payload);
     }());
     */
 
     (async function() {
+      const msgdiv = document.getElementById('results');
+      msgdiv.innerText = "Loading...";
+
       try {
         const response = await fetch('/api/UpdateGroceryList', {
           method: "GET",
@@ -145,6 +151,8 @@
       } catch (error) {
         alert("Exception: " + error);
       }
+
+      msgdiv.innerText = "";      
     }());
   </script>
 </body>
