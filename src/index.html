@@ -23,7 +23,7 @@
       msgdiv.innerText = "Checking auth...";
       fetch('/.auth/me')
         .then(response => response.json())
-        .then(data => msgdiv.innerText = data)
+        .then(data => msgdiv.innerText = JSON.stringify(data))
         .catch(error => msgdiv.innerText = error);
       alert("done!");
     }
