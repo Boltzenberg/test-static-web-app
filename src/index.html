@@ -13,20 +13,20 @@
     <h1>Vanilla JavaScript App</h1>
     <a href="/.auth/login/aad">Login with Microsoft Entra ID</a><br>
     <a href="/.auth/logout">Logout</a><br>
+    <button type="button" onclick="checkAuth()">Check Auth</button><br>
     <div id="results"></div>
   </form>
 
   <script>
-    (async function() {
+    function checkAuth() {
       const msgdiv = document.getElementById('results');
-      msgdiv.innerText = "Loading...";
+      msgdiv.innerText = "Checking auth...";
       fetch('/.auth/me')
         .then(response => response.json())
-        .then(data => {
-          ctrl.innerText = data;
-        })
-        .catch(error => ctrl.innerText = error);
-    }());
+        .then(data => msgdiv.innerText = data)
+        .catch(error => msgdiv.innerText = error);
+      alert("done!");
+    }
   </script>
 </body>
 
