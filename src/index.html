@@ -9,25 +9,23 @@
 </head>
 
 <body>
-  <main>
+  <form id="gForm">
     <h1>Vanilla JavaScript App</h1>
     <a href="/.auth/login/aad">Login with Microsoft Entra ID</a><br>
     <a href="/.auth/logout">Logout</a><br>
-    <div id="authresult"></div>
-  </main>
+    <div id="results"></div>
+  </form>
 
   <script>
     (async function() {
-      const ctrl = document.getElementById('authresult');
-      ctrl.text = "Loading...";
+      const msgdiv = document.getElementById('results');
+      msgdiv.innerText = "Loading...";
       fetch('/.auth/me')
         .then(response => response.json())
         .then(data => {
-          ctrl.text = data;
+          ctrl.innerText = data;
         })
-        .catch(error) {
-          ctrl.text = error;
-        };
+        .catch(error => ctrl.innerText = error);
     }());
   </script>
 </body>
