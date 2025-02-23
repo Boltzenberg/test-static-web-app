@@ -11,24 +11,23 @@
 <body>
   <main>
     <h1>Vanilla JavaScript App</h1>
-    <p>Loading content from the API: <b id="name">...</b></p>
+    <a href="/.auth/login/aad">Login with Microsoft Entra ID</a><br>
+    <a href="/.auth/logout">Logout</a><br>
+    <div id="authresult"></div>
   </main>
 
   <script>
     (async function() {
-      var ctrl = document.querySelector('#name');
-
-      try {
-        const response = await fetch('http://localhost:7071/api/message');
-        if (response.ok) {
-          const data = await response.text();
-          ctrl.textContent = data;
-        } else {
-          alert(response);
-        }
-      } catch (error) {
-        alert("Exception: " + error);
-      }
+      const ctrl = document.getElementById('authresult');
+      ctrl.text = "Loading...";
+      fetch('/.auth/me')
+        .then(response => response.json())
+        .then(data => {
+          ctrl.text = data;
+        })
+        .catch(error) {
+          ctrl.text = error;
+        };
     }());
   </script>
 </body>

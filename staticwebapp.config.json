@@ -1,0 +1,23 @@
+{
+    "routes": [
+        {
+            "route": "/.auth/login/aad",
+            "redirect": "/.auth/login/aad"
+        },
+        {
+            "route": "/.auth/logout",
+            "redirect": "/.auth/logout"
+        }
+    ],
+    "auth": {
+        "identityProviders": {
+            "azureActiveDirectory": {
+                "registration": {
+                    "clientIdSettingName": "AAD_CLIENT_ID",
+                    "clientSecretSettingName": "AAD_CLIENT_SECRET",
+                    "tenantIdSettingName": "AAD_TENANT_ID"
+                }
+            }
+        }
+    }
+}
