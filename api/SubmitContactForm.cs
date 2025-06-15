@@ -52,11 +52,8 @@ public class SubmitContactForm
         }
     }
 
-    [Function("ContactDanRosenberg")]
-    public IActionResult ContactDanRosenberg([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequest req)
+    private IActionResult SendEmail(string toAddress, string toName, HttpRequest req)
     {
-        const string ToAddress = "danrosenberg@gmail.com";
-        const string ToName = "Dan Rosenberg";
         string message = "This is a test mail";
 
         if (req.Method.ToLowerInvariant() == "post")
@@ -69,40 +66,25 @@ public class SubmitContactForm
             message = sb.ToString();
         }
 
-        if (MailJetSantaMail(ToAddress, ToName, message))
+        if (MailJetSantaMail(toAddress, toName, message))
         {
-            return new OkObjectResult(message);
+            return new OkObjectResult("Great! Thanks for filling out my form!");
         }
         else
         {
-            return new OkObjectResult("Failed to send the mail :(");
+            return new OkObjectResult("Oops!  There was a problem submitting the form.");
         }
+    }
+
+    [Function("ContactDanRosenberg")]
+    public IActionResult ContactDanRosenberg([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequest req)
+    {
+        return SendEmail("danrosenberg@gmail.com", "Dan Rosenberg", req);
     }
 
     [Function("TestContactForm")]
     public IActionResult TestContactForm([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequest req)
     {
-        const string ToAddress = "jon.p.rosenberg@gmail.com";
-        const string ToName = "Jon Rosenberg";
-        string message = "This is a test mail";
-
-        if (req.Method.ToLowerInvariant() == "post")
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("First Name: {0}{1}", req.Form["firstName"], Environment.NewLine);
-            sb.AppendFormat("Last Name: {0}{1}", req.Form["lastName"], Environment.NewLine);
-            sb.AppendFormat("Email Address: {0}{1}", req.Form["email"], Environment.NewLine);
-            sb.AppendFormat("Message: {0}{1}", req.Form["message"], Environment.NewLine);
-            message = sb.ToString();
-        }
-
-        if (MailJetSantaMail(ToAddress, ToName, message))
-        {
-            return new OkObjectResult(message);
-        }
-        else
-        {
-            return new OkObjectResult("Failed to send the mail :(");
-        }
+        return SendEmail("jon.p.rosenberg@gmail.com", "Jon Rosenberg", req);
     }
 }
