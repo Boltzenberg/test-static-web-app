@@ -57,9 +57,21 @@ public class SubmitContactForm
     [Function("SubmitContactForm")]
     public IActionResult Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequest req)
     {
-        if (MailJetSantaMail("This is a test mail"))
+        string message = "This is a test mail";
+
+        if (req.Method.ToLowerInvariant() == "post")
         {
-            return new OkObjectResult("Check your inbox!");
+            StringBuilder sb = new StringBuilder();
+            sb.AppendFormat("First Name: {0}{1}", req.Form["firstName"], Environment.NewLine);
+            sb.AppendFormat("Last Name: {0}{1}", req.Form["lastName"], Environment.NewLine);
+            sb.AppendFormat("Email Address: {0}{1}", req.Form["email"], Environment.NewLine);
+            sb.AppendFormat("Message: {0}{1}", req.Form["message"], Environment.NewLine);
+            message = sb.ToString();
+        }
+
+        if (MailJetSantaMail(message))
+        {
+            return new OkObjectResult(message);
         }
         else
         {
