@@ -68,11 +68,11 @@ public class SubmitContactForm
 
         if (MailJetSantaMail(toAddress, toName, message))
         {
-            return new OkObjectResult("Great! Thanks for filling out my form!");
+            return new OkObjectResult("<h2 class=\"formResponse\">Great! Thanks for filling out my form!</h2>");
         }
         else
         {
-            return new OkObjectResult("Oops!  There was a problem submitting the form.");
+            return new OkObjectResult("<h2 class=\"formResponse\">Oops!  There was a problem submitting the form.</h2>");
         }
     }
 

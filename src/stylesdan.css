@@ -1,0 +1,31 @@
+* {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+html, body {
+  margin: 0;
+  border: 0;
+  padding: 0;
+  background-color: #fff;
+}
+
+main {
+  margin: auto;
+  width: 50%;
+  padding: 20px;
+}
+
+main > h1 {
+  text-align: center;
+  font-size: 3.5em;
+}
+
+h2.formResponse {
+  padding: 0px;
+  font-size: 35px;
+  color: #484c52;
+  line-height: 55px;
+  text-align: center;
+  margin: 98px 0 20px 0;
+  font-weight: normal;
+}
