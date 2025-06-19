@@ -59,8 +59,7 @@ public class SubmitContactForm
         if (req.Method.ToLowerInvariant() == "post")
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("First Name: {0}{1}", req.Form["firstName"], Environment.NewLine);
-            sb.AppendFormat("Last Name: {0}{1}", req.Form["lastName"], Environment.NewLine);
+            sb.AppendFormat("Name: {0}{1}", req.Form["name"], Environment.NewLine);
             sb.AppendFormat("Email Address: {0}{1}", req.Form["email"], Environment.NewLine);
             sb.AppendFormat("Message: {0}{1}", req.Form["message"], Environment.NewLine);
             message = sb.ToString();
