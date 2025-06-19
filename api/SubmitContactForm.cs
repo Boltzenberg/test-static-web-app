@@ -81,8 +81,8 @@ public class SubmitContactForm
         return SendEmail("danrosenberg@gmail.com", "Dan Rosenberg", req);
     }
 
-    [Function("TestContactForm")]
-    public IActionResult TestContactForm([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequest req)
+    [Function("ContactJonRosenberg")]
+    public IActionResult ContactJonRosenberg([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequest req)
     {
         return SendEmail("jon.p.rosenberg@gmail.com", "Jon Rosenberg", req);
     }
