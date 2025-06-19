@@ -68,11 +68,11 @@ public class SubmitContactForm
         string responseMessage = string.Empty;
         if (MailJetSantaMail(toAddress, toName, message))
         {
-            responseMessage = "<div class=\"success-response\">Great! Thanks for filling out my form!</div>";
+            responseMessage = "<H2>Great! Thanks for filling out my form!</H2>";
         }
         else
         {
-            responseMessage = "<div class=\"failure-response\">Oops! There was a problem submitting the form.</div>";
+            responseMessage = "<H2>Oops! There was a problem submitting the form.</H2>";
         }
 
         return new ContentResult {
