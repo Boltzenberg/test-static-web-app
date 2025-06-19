@@ -1,0 +1,110 @@
+img
+{
+float:left;
+margin:5px 5px 5px 5px;
+}
+#credit {
+top: 510px;
+position: absolute;
+left: 760px;
+width: 300px;
+height: 130px;
+font-size: 11px;
+font-family: garamond;
+color: #000000;
+text-align: center;
+line-height: 12pt;
+}
+#header {
+line-height: 93%;
+color: #000000;
+font-family: "Georgia";
+height: 58px;
+font-variant: small-caps;
+position: absolute;
+top: 54px;
+text-align: left;
+font-size: 26pt;
+margin-left: 100px;
+}
+#subheader {
+line-height: 18pt;
+color: #606060;
+font-family: garamond;
+font-variant: small-caps;
+position: absolute;
+top: 95px;
+text-align: left;
+font-size: 14pt;
+margin-left: 100px;
+}
+#nav {
+text-align: left;
+text-indent:200px;
+font-family: garamond;
+font-size: 12px;
+color: #F8F8F8;
+background-color: #000000;
+position: absolute;
+top: 0px;
+left: 0px;
+width: 100%;
+height: 40px;
+}
+#cont {
+top: 154px;
+position: absolute;
+left: 215px;
+width: 677px;
+height: 330px;
+font-size: 18px;
+font-family: garamond;
+color: #181818;
+line-height: 18pt;
+}
+#title {
+color: #000000;
+font-variant: small-caps;
+font-weight: bold;
+}
+a:link {
+text-decoration: none;
+color: #7f7f7f;
+}
+a:visited {
+text-decoration: none;
+color: #7f7f7f;
+}
+a:hover {
+text-decoration: none;
+color: #191919;
+}
+a:active {
+text-decoration: none;
+color: #888888;
+}
+a.top:link {
+text-decoration: none;
+color: #F8F8F8;
+}
+a.top:visited {
+text-decoration: none;
+color: #F8F8F8;
+}
+a.top:hover {
+text-decoration: none;
+color: #C8C8C8;
+}
+a.top:active {
+text-decoration: none;
+color: #C8C8C8;
+}
+.hangingindent {
+    padding-left: 22px ;
+    text-indent: -22px ;
+}
+body {
+color: #181818;
+background-color: #white;
+padding-left:100px;
+}
