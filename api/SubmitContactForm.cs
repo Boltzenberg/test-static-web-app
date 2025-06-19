@@ -65,14 +65,21 @@ public class SubmitContactForm
             message = sb.ToString();
         }
 
+        string responseMessage = string.Empty;
         if (MailJetSantaMail(toAddress, toName, message))
         {
-            return new OkObjectResult("<h2 class=\"formResponse\">Great! Thanks for filling out my form!</h2>");
+            responseMessage = "<div class=\"success-response\">Great! Thanks for filling out my form!</div>";
         }
         else
         {
-            return new OkObjectResult("<h2 class=\"formResponse\">Oops!  There was a problem submitting the form.</h2>");
+            responseMessage = "<div class=\"failure-response\">Oops! There was a problem submitting the form.</div>";
         }
+
+        return new ContentResult {
+            Content = responseMessage,
+            ContentType = "text/html",
+            StatusCode = 200
+        };
     }
 
     [Function("ContactDanRosenberg")]

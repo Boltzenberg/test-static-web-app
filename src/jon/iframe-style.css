@@ -27,6 +27,14 @@ body {
     font-size: 14px;
   }
 
+  div.success-response {
+    font-size: 35px;
+  }
+
+  div.failure-response {
+    font-size: 24px;
+  }
+
   /* Inputs and textareas */
   input[type="text"],
   input[type="email"],
