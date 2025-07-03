@@ -18,7 +18,8 @@
     function disableSubmitButton() {
       const btn = document.getElementById('saveForm');
       btn.disabled = true;
-      btn.innerText = "Submitting...";
+      btn.value = "Submitting...";
+      return true;
     }
   </script>
 </head>
