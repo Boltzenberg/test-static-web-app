@@ -13,10 +13,19 @@
 
   <!-- CSS -->
 	<link href="iframe-style.css" rel="stylesheet">
+
+  <script>
+    function disableSubmitButton() {
+      const btn = document.getElementById('saveForm');
+      btn.disabled = true;
+      btn.value = "Submitting...";
+      return true;
+    }
+  </script>
 </head>
 
 <body>
-  <form action="https://icy-desert-022a66a1e.4.azurestaticapps.net/api/ContactDanRosenberg" method="post">
+  <form action="https://icy-desert-022a66a1e.4.azurestaticapps.net/api/ContactDanRosenberg" method="post" onsubmit="disableSubmitButton()">
     <header id="header" class="info">
       <h2 class="">Contact Dan</h2>
       <div class=""></div>
