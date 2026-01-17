@@ -22,12 +22,19 @@ public class ReadAddressBook
     [Function("ReadAddressBook")]
     public IActionResult Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequest req)
     {
-        ClientPrincipal? principal = ClientPrincipal.FromReq(req);
-        if (principal == null)
+        try
         {
-            return new UnauthorizedObjectResult("No auth header found");
-        }
+            ClientPrincipal? principal = ClientPrincipal.FromReq(req);
+            if (principal == null)
+            {
+                return new UnauthorizedObjectResult("No auth header found");
+            }
 
-        return new OkObjectResult(JsonSerializer.Serialize(principal));
+            return new OkObjectResult(JsonSerializer.Serialize(principal));
+        }
+        catch (Exception ex)
+        {
+            return new OkObjectResult(ex.ToString());
+        }
     }
 }
