@@ -23,7 +23,7 @@ public class ReadAddressBook
     public IActionResult Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequest req)
     {
         ClientPrincipal? principal = ClientPrincipal.FromReq(req);
-        if (principal == null || !principal.UserRoles.Contains("authenticated"))
+        if (principal == null)
         {
             return new UnauthorizedObjectResult("No auth header found");
         }
