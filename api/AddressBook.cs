@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
@@ -17,7 +18,13 @@ public class ReadAddressBook
     [Function("ReadAddressBook")]
     public IActionResult Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequest req)
     {
-        _logger.LogInformation("C# HTTP trigger function processed a request.");
-        return new OkObjectResult("Welcome to Azure Functions!");
+        var header = req.Headers["X-MS-TOKEN-AAD-ACCESS-TOKEN"];
+        if (!String.IsNullOrEmpty(header))
+        {
+            var accessToken = header.ToString(); // You now have the raw JWT 
+        }
+
+        string response = JsonSerializer.Serialize(req.Headers);
+        return new OkObjectResult(response);
     }
 }
