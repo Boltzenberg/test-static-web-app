@@ -13,7 +13,8 @@
     <h1>Vanilla JavaScript App</h1>
     <a href="/.auth/login/aad">Login with Microsoft Entra ID</a><br>
     <a href="/.auth/logout">Logout</a><br>
-    <button type="button" onclick="checkAuth()">Check Current Auth</button><br>
+    <button type="button" onclick="checkAuth()">Check Current Auth Locally</button><br>
+    <button type="button" onclick="checkAuthInFunction()">Check Current Auth In Azure Function</button><br>
     <div id="results"></div>
   </form>
 
@@ -22,6 +23,16 @@
       const msgdiv = document.getElementById('results');
       msgdiv.innerText = "Checking auth...";
       fetch('/.auth/me')
+        .then(response => response.json())
+        .then(data => msgdiv.innerText = JSON.stringify(data))
+        .catch(error => msgdiv.innerText = error);
+      alert("done!");
+    }
+
+    function checkAuthInFunction() {
+      const msgdiv = document.getElementById('results');
+      msgdiv.innerText = "Checking auth...";
+      fetch('/api/ReadAddressBook')
         .then(response => response.json())
         .then(data => msgdiv.innerText = JSON.stringify(data))
         .catch(error => msgdiv.innerText = error);
