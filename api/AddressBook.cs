@@ -25,7 +25,7 @@ public class ReadAddressBook
         ClientPrincipal? principal = ClientPrincipal.FromReq(req);
         if (principal == null || !principal.UserRoles.Contains("authenticated"))
         {
-            return new UnauthorizedObjectResult("{ message=\"No auth header found\" }");
+            return new UnauthorizedObjectResult("No auth header found");
         }
 
         return new OkObjectResult(JsonSerializer.Serialize(principal));
