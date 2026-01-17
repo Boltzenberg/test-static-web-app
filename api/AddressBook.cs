@@ -1,8 +1,12 @@
+using System.Text;
 using System.Text.Json;
+using Boltzenberg.Functions.DataModels.Auth;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Primitives;
 
 namespace Boltzenberg.Functions;
 
@@ -18,13 +22,25 @@ public class ReadAddressBook
     [Function("ReadAddressBook")]
     public IActionResult Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequest req)
     {
-        var header = req.Headers["X-MS-TOKEN-AAD-ACCESS-TOKEN"];
-        if (!String.IsNullOrEmpty(header))
+        // 1. Read the header 
+        if (!req.Headers.TryGetValue("X-MS-CLIENT-PRINCIPAL", out var headerValues))
         {
-            var accessToken = header.ToString(); // You now have the raw JWT 
+            return new UnauthorizedObjectResult("No auth header found");
         }
 
-        string response = JsonSerializer.Serialize(req.Headers);
-        return new OkObjectResult(response);
+        var encoded = headerValues.First();
+        if (encoded == null)
+        {
+            return new UnauthorizedObjectResult("No auth header value");
+        }
+
+        // 2. Decode Base64 → JSON 
+        var decodedBytes = Convert.FromBase64String(encoded);
+        var json = Encoding.UTF8.GetString(decodedBytes);
+
+        // 3. Deserialize
+        //var principal = JsonSerializer.Deserialize<ClientPrincipal>(json);
+
+        return new OkObjectResult(json);
     }
 }
