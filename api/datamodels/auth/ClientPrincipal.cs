@@ -6,10 +6,10 @@ namespace Boltzenberg.Functions.DataModels.Auth
 {
     public class ClientPrincipal
     {
-        public required string IdentityProvider { get; set; }
-        public required string UserId { get; set; }
-        public required string UserDetails { get; set; }
-        public required IEnumerable<string> UserRoles { get; set; }
+        public string? IdentityProvider { get; set; }
+        public string? UserId { get; set; }
+        public string? UserDetails { get; set; }
+        public IEnumerable<string>? UserRoles { get; set; }
 
         public static ClientPrincipal? FromReq(HttpRequest req)
         {
