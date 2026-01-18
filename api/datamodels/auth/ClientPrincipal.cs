@@ -1,14 +1,22 @@
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http;
 
 namespace Boltzenberg.Functions.DataModels.Auth
 {
     public class ClientPrincipal
     {
+        [JsonPropertyName("identityProvider")]
         public string? IdentityProvider { get; set; }
+
+        [JsonPropertyName("userId")]
         public string? UserId { get; set; }
+
+        [JsonPropertyName("userDetails")]
         public string? UserDetails { get; set; }
+
+        [JsonPropertyName("userRoles")]
         public IEnumerable<string>? UserRoles { get; set; }
 
         public static ClientPrincipal? FromReq(HttpRequest req)
