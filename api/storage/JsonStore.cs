@@ -15,7 +15,7 @@ namespace Boltzenberg.Functions.Storage
         {
             QueryRequestOptions queryRequestOptions = new QueryRequestOptions() { PartitionKey = new PartitionKey(GroceryListDB.GroceryListAppId) };
 
-            string query = "SELECT * FROM c WHERE c.AppId = @appId AND c.ListId = @listId";
+            string query = "SELECT * FROM c WHERE c.AppId = @appId AND c.id = @listId";
             QueryDefinition queryDefinition = new QueryDefinition(query)
                 .WithParameter("@appId", GroceryListDB.GroceryListAppId)
                 .WithParameter("@listId", listId);
