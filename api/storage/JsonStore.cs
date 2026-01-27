@@ -11,14 +11,13 @@ namespace Boltzenberg.Functions.Storage
         private static Database database = cosmosClient.GetDatabase("GungaDB");
         private static Container container = database.GetContainer("DocumentsContainer");
 
-        public static async Task<GroceryListDB> GetGroceryListFromCosmos(string listId)
+        public static async Task<GroceryListDB> GetGroceryList(string listId)
         {
-            const string AppId = "GroceryList";
-            QueryRequestOptions queryRequestOptions = new QueryRequestOptions() { PartitionKey = new PartitionKey(AppId) };
+            QueryRequestOptions queryRequestOptions = new QueryRequestOptions() { PartitionKey = new PartitionKey(GroceryListDB.GroceryListAppId) };
 
             string query = "SELECT * FROM c WHERE c.AppId = @appId AND c.ListId = @listId";
             QueryDefinition queryDefinition = new QueryDefinition(query)
-                .WithParameter("@appId", AppId)
+                .WithParameter("@appId", GroceryListDB.GroceryListAppId)
                 .WithParameter("@listId", listId);
 
             FeedIterator<GroceryListDB> queryResultSetIterator = container.GetItemQueryIterator<GroceryListDB>(queryDefinition, requestOptions: queryRequestOptions);
@@ -30,6 +29,13 @@ namespace Boltzenberg.Functions.Storage
                 dataset = currentResultSet.FirstOrDefault();
             }
 
+            return dataset;
+        }
+
+        public static async Task<GroceryListDB> GetOrCreateGroceryList(string listId)
+        {
+            GroceryListDB dataset = await GetGroceryList(listId);
+
             if (dataset == null)
             {
                 dataset = new GroceryListDB(listId);
@@ -38,10 +44,16 @@ namespace Boltzenberg.Functions.Storage
             return dataset;
         }
 
-        public static async Task<GroceryListDB> UpdateGroceryListToCosmos(GroceryListDB dataset)
+        public static async Task<GroceryListDB> CreateGroceryList(GroceryListDB dataset)
         {
-            const string AppId = "GroceryList";
+            ItemResponse<GroceryListDB> createResponse = await container.CreateItemAsync<GroceryListDB>(
+                dataset,
+                new PartitionKey(GroceryListDB.GroceryListAppId));
+            return createResponse.Resource;
+        }
 
+        public static async Task<GroceryListDB> UpdateGroceryList(GroceryListDB dataset)
+        {
             try
             {
                 ItemRequestOptions requestOptions = new ItemRequestOptions
@@ -52,7 +64,7 @@ namespace Boltzenberg.Functions.Storage
                 ItemResponse<GroceryListDB> updateResponse = await container.ReplaceItemAsync<GroceryListDB>(
                     dataset,
                     dataset.id,
-                    new PartitionKey(AppId),
+                    new PartitionKey(GroceryListDB.GroceryListAppId),
                     requestOptions);
                 return updateResponse.Resource;
             }

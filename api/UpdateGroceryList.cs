@@ -43,35 +43,52 @@ namespace Boltzenberg.Functions
                 string body = await new StreamReader(req.Body).ReadToEndAsync();
                 if (!string.IsNullOrEmpty(body))
                 {
+                    _logger.LogInformation("Request Body: " + body);
                     UpdateGroceryListPayload reqBody = JsonSerializer.Deserialize<UpdateGroceryListPayload>(body);
                     if (reqBody != null)
                     {
+                        _logger.LogInformation("Deserialized successfully");
                         do
                         {
-                            dataset = await JsonStore.GetGroceryListFromCosmos(listId);
+                            dataset = await JsonStore.GetGroceryList(listId);
+                            bool mustCreateDataset = (dataset == null);
+                            if (dataset == null)
+                            {
+                                dataset = new GroceryListDB(listId);
+                            }
 
                             foreach (GroceryListItem item in reqBody.ToRemove)
-                            {
-                                GroceryListItem itemToRemove = dataset.Items.Where(i => i.Item == item.Item).FirstOrDefault();
-                                if (itemToRemove != null)
                                 {
-                                    dataset.Items.Remove(itemToRemove);
+                                    GroceryListItem itemToRemove = dataset.Items.Where(i => i.Item == item.Item).FirstOrDefault();
+                                    if (itemToRemove != null)
+                                    {
+                                        dataset.Items.Remove(itemToRemove);
+                                    }
                                 }
-                            }
 
                             foreach (GroceryListItem item in reqBody.ToAdd)
                             {
                                 dataset.Items.Add(item);
                             }
 
-                            dataset = await JsonStore.UpdateGroceryListToCosmos(dataset);
+                            _logger.LogInformation("dataset has " + dataset.Items.Count + " items");
+                            _logger.LogInformation(JsonSerializer.Serialize(dataset));
+
+                            if (mustCreateDataset)
+                            {
+                                dataset = await JsonStore.CreateGroceryList(dataset);
+                            }
+                            else
+                            {
+                                dataset = await JsonStore.UpdateGroceryList(dataset);
+                            }
                         } while (dataset == null);
                     }
                 }
             }
             else
             {
-                dataset = await JsonStore.GetGroceryListFromCosmos(listId);
+                dataset = await JsonStore.GetOrCreateGroceryList(listId);
             }
 
             string response = JsonSerializer.Serialize(dataset.Items);

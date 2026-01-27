@@ -4,14 +4,16 @@ namespace Boltzenberg.Functions.DataModels.GroceryList
 {
     public class GroceryListDB
     {
-        public string ListId { get; set; }
+        public static string GroceryListAppId = "GroceryList";
+
+        public string AppId { get; set; }
         public List<GroceryListItem> Items { get; set; }
         public string id { get; set; }
         public string _etag { get; set; }
 
         public GroceryListDB()
         {
-            this.ListId = string.Empty;
+            this.AppId = GroceryListAppId;
             this.Items = new List<GroceryListItem>();
             this.id = string.Empty;
             this._etag = string.Empty;
@@ -19,9 +21,9 @@ namespace Boltzenberg.Functions.DataModels.GroceryList
 
         public GroceryListDB(string listId)
         {
-            this.ListId = listId;
+            this.AppId = GroceryListAppId;
             this.Items = new List<GroceryListItem>();
-            this.id = string.Empty;
+            this.id = listId;
             this._etag = string.Empty;
         }
 
