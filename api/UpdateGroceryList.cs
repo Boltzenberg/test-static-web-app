@@ -6,6 +6,7 @@ using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using Boltzenberg.Functions.DataModels.GroceryList;
+using Boltzenberg.Functions.Storage;
 
 namespace Boltzenberg.Functions
 {
@@ -16,56 +17,13 @@ namespace Boltzenberg.Functions
         private static string PrimaryKey = Environment.GetEnvironmentVariable("GROCERY_LIST_PRIMARY_KEY");
         private static CosmosClient cosmosClient = new CosmosClient(EndpointUri, PrimaryKey);
         private static Database database = cosmosClient.GetDatabase("GungaDB");
-        private static Container container = database.GetContainer("GroceryList");
+        private static Container container = database.GetContainer("DocumentsContainer");
+        private static string AppId = "GroceryList";
+        private static QueryRequestOptions queryRequestOptions = new QueryRequestOptions() { PartitionKey = new PartitionKey(AppId) };
 
         public UpdateGroceryList(ILogger<UpdateGroceryList> logger)
         {
             _logger = logger;
-        }
-
-        private async Task<GroceryListDB> GetGroceryListFromCosmos(string listId)
-        {
-            string query = "SELECT * FROM c WHERE c.ListId = @listId";
-            QueryDefinition queryDefinition = new QueryDefinition(query).WithParameter("@listId", listId);
-            FeedIterator<GroceryListDB> queryResultSetIterator = container.GetItemQueryIterator<GroceryListDB>(queryDefinition);
-
-            GroceryListDB dataset = null;
-            if (queryResultSetIterator.HasMoreResults)
-            {
-                FeedResponse<GroceryListDB> currentResultSet = await queryResultSetIterator.ReadNextAsync();
-                dataset = currentResultSet.FirstOrDefault();
-            }
-
-            if (dataset == null)
-            {
-                dataset = new GroceryListDB();
-            }
-
-            return dataset;
-        }
-
-        private async Task<GroceryListDB> UpdateGroceryListToCosmos(GroceryListDB dataset)
-        {
-            try
-            {
-                ItemRequestOptions requestOptions = new ItemRequestOptions
-                {
-                    IfMatchEtag = dataset._etag
-                };
-
-                ItemResponse<GroceryListDB> updateResponse = await container.ReplaceItemAsync<GroceryListDB>(
-                    dataset,
-                    dataset.id,
-                    new PartitionKey(dataset.ListId),
-                    requestOptions);
-                return updateResponse.Resource;
-            }
-            catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.PreconditionFailed)
-            {
-                // Handle the case where the ETag does not match
-            }
-
-            return null;
         }
 
         [Function("UpdateGroceryList")]
@@ -90,7 +48,7 @@ namespace Boltzenberg.Functions
                     {
                         do
                         {
-                            dataset = await this.GetGroceryListFromCosmos(listId);
+                            dataset = await JsonStore.GetGroceryListFromCosmos(listId);
 
                             foreach (GroceryListItem item in reqBody.ToRemove)
                             {
@@ -106,14 +64,14 @@ namespace Boltzenberg.Functions
                                 dataset.Items.Add(item);
                             }
 
-                            dataset = await this.UpdateGroceryListToCosmos(dataset);
+                            dataset = await JsonStore.UpdateGroceryListToCosmos(dataset);
                         } while (dataset == null);
                     }
                 }
             }
             else
             {
-                dataset = await this.GetGroceryListFromCosmos(listId);
+                dataset = await JsonStore.GetGroceryListFromCosmos(listId);
             }
 
             string response = JsonSerializer.Serialize(dataset.Items);

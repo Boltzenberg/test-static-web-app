@@ -40,5 +40,23 @@ namespace Boltzenberg.Functions.DataModels.Auth
             // 3. Deserialize
             return JsonSerializer.Deserialize<ClientPrincipal>(json);
         }
+
+        private static HashSet<string> AddressBookAuthorizedUsers = new HashSet<string>()
+        {
+            "jon_rosenberg@hotmail.com",
+            "treester@hotmail.com"
+        };
+
+        public bool IsAuthorizedForAddressBook()
+        {
+            if (this.UserDetails == null)
+            {
+                return false;
+            }
+
+
+            string user = this.UserDetails.ToLowerInvariant();
+            return AddressBookAuthorizedUsers.Contains(user);
+        }
     }
 }
