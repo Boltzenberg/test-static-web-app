@@ -159,17 +159,17 @@ public class AddressBook
             AddressBookEntry entry = new AddressBookEntry();
             entry.id = "id123";
             entry._etag = "etag";
-            entry.FirstName = "Jon";
-            entry.LastName = "Rosenberg";
-            entry.Street = "13339 NE 92nd Way";
+            entry.FirstName = "Dummy";
+            entry.LastName = "Name";
+            entry.Street = "123 Happy Street";
             entry.Apartment = "Apt B";
-            entry.City = "Redmond";
-            entry.State = "WA";
-            entry.ZipCode = "98052";
-            entry.PhoneNumber = "425.591.9019";
-            entry.MailingName = "Jon and Teresa Rosenberg";
-            entry.OtherPeople = "Teresa";
-            entry.HolidayCard = "Christmas";
+            entry.City = "Springfield";
+            entry.State = "MU";
+            entry.ZipCode = "12345";
+            entry.PhoneNumber = "123.456.7890";
+            entry.MailingName = "Mr. and Mrs. Name";
+            entry.OtherPeople = "Other";
+            entry.HolidayCard = "Yes";
             return new OkObjectResult(JsonSerializer.Serialize(entry));
         }
         catch (Exception ex)
