@@ -13,13 +13,6 @@ namespace Boltzenberg.Functions
     public class UpdateGroceryList
     {
         private readonly ILogger<UpdateGroceryList> _logger;
-        private const string EndpointUri = "https://gunga-test-cosmosdb.documents.azure.com:443/";
-        private static string PrimaryKey = Environment.GetEnvironmentVariable("GROCERY_LIST_PRIMARY_KEY");
-        private static CosmosClient cosmosClient = new CosmosClient(EndpointUri, PrimaryKey);
-        private static Database database = cosmosClient.GetDatabase("GungaDB");
-        private static Container container = database.GetContainer("DocumentsContainer");
-        private static string AppId = "GroceryList";
-        private static QueryRequestOptions queryRequestOptions = new QueryRequestOptions() { PartitionKey = new PartitionKey(AppId) };
 
         public UpdateGroceryList(ILogger<UpdateGroceryList> logger)
         {
@@ -29,7 +22,6 @@ namespace Boltzenberg.Functions
         [Function("UpdateGroceryList")]
         public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequest req)
         {
-            _logger.LogInformation("C# HTTP trigger function processed a request.");
             string listId = req.Headers["X-List-ID"];
             if (string.IsNullOrEmpty(listId))
             {
@@ -47,7 +39,6 @@ namespace Boltzenberg.Functions
                     UpdateGroceryListPayload reqBody = JsonSerializer.Deserialize<UpdateGroceryListPayload>(body);
                     if (reqBody != null)
                     {
-                        _logger.LogInformation("Deserialized successfully");
                         do
                         {
                             dataset = await JsonStore.GetGroceryList(listId);
@@ -58,21 +49,18 @@ namespace Boltzenberg.Functions
                             }
 
                             foreach (GroceryListItem item in reqBody.ToRemove)
+                            {
+                                GroceryListItem itemToRemove = dataset.Items.Where(i => i.Item == item.Item).FirstOrDefault();
+                                if (itemToRemove != null)
                                 {
-                                    GroceryListItem itemToRemove = dataset.Items.Where(i => i.Item == item.Item).FirstOrDefault();
-                                    if (itemToRemove != null)
-                                    {
-                                        dataset.Items.Remove(itemToRemove);
-                                    }
+                                    dataset.Items.Remove(itemToRemove);
                                 }
+                            }
 
                             foreach (GroceryListItem item in reqBody.ToAdd)
                             {
                                 dataset.Items.Add(item);
                             }
-
-                            _logger.LogInformation("dataset has " + dataset.Items.Count + " items");
-                            _logger.LogInformation(JsonSerializer.Serialize(dataset));
 
                             if (mustCreateDataset)
                             {
