@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Address Book Dropdown</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    #status { margin-top: 10px; color: #666; }
+  </style>
+</head>
+<body>
+
+  <h2>Select an Address Book Entry</h2>
+
+  <select id="addressDropdown">
+    <option value="">Loading...</option>
+  </select>
+
+  <div id="status"></div>
+
+  <script>
+    async function loadAddressBook() {
+      const dropdown = document.getElementById('addressDropdown');
+      const status = document.getElementById('status');
+
+      try {
+        status.textContent = "Loading address book entries…";
+
+        const response = await fetch('/api/AddressBookReadAll');
+        if (!response.ok) {
+          throw new Error(`API returned ${response.status}`);
+        }
+
+        const entries = await response.json();
+
+        dropdown.innerHTML = ""; // clear "Loading..."
+
+        entries.forEach(entry => {
+          const option = document.createElement('option');
+
+          // Choose how you want to display names
+          const displayName =
+            entry.mailingName ||
+            `${entry.firstName ?? ''} ${entry.lastName ?? ''}`.trim() ||
+            "(Unnamed Entry)";
+
+          option.value = entry.id;
+          option.textContent = displayName;
+
+          dropdown.appendChild(option);
+        });
+
+        status.textContent = `Loaded ${entries.length} entries`;
+      }
+      catch (err) {
+        status.textContent = "Failed to load address book entries.";
+        console.error(err);
+        dropdown.innerHTML = "<option>Error loading entries</option>";
+      }
+    }
+
+    loadAddressBook();
+  </script>
+
+</body>
+</html>
