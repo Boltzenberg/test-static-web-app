@@ -1,3 +1,5 @@
+using Azure;
+using Boltzenberg.Functions.DataModels;
 using Boltzenberg.Functions.DataModels.AddressBook;
 using Boltzenberg.Functions.DataModels.GroceryList;
 using Microsoft.Azure.Cosmos;
@@ -12,71 +14,142 @@ namespace Boltzenberg.Functions.Storage
         private static Database database = cosmosClient.GetDatabase("GungaDB");
         private static Container container = database.GetContainer("DocumentsContainer");
 
-        public static async Task<GroceryListDB> GetGroceryList(string listId)
+        public static async Task<OperationResult<T>> Create<T>(T entity) where T : CosmosDocument
         {
-            QueryRequestOptions queryRequestOptions = new QueryRequestOptions() { PartitionKey = new PartitionKey(GroceryListDB.GroceryListAppId) };
+            try
+            {
+                ItemResponse<T> createResponse = await container.CreateItemAsync<T>(
+                    entity,
+                    new PartitionKey(entity.AppId));
 
-            string query = "SELECT * FROM c WHERE c.AppId = @appId AND c.id = @listId";
+                if (createResponse.StatusCode == System.Net.HttpStatusCode.Created)
+                {
+                    return new OperationResult<T>(ResultCode.Success, createResponse.Resource, null);
+                }
+                else
+                {
+                    return new OperationResult<T>(ResultCode.GenericError, createResponse.Resource, null);
+                }
+            }
+            catch (Exception ex)
+            {
+                return new OperationResult<T>(ResultCode.GenericError, null, ex);
+            }
+        }
+
+        public static async Task<OperationResult<T>> Read<T>(string appId, string docId) where T : CosmosDocument
+        {
+            QueryRequestOptions queryRequestOptions = new QueryRequestOptions() { PartitionKey = new PartitionKey(appId) };
+
+            string query = "SELECT * FROM c WHERE c.AppId = @appId AND c.id = @docId";
             QueryDefinition queryDefinition = new QueryDefinition(query)
-                .WithParameter("@appId", GroceryListDB.GroceryListAppId)
-                .WithParameter("@listId", listId);
+                .WithParameter("@appId", appId)
+                .WithParameter("@docId", docId);
 
-            FeedIterator<GroceryListDB> queryResultSetIterator = container.GetItemQueryIterator<GroceryListDB>(queryDefinition, requestOptions: queryRequestOptions);
-
-            GroceryListDB dataset = null;
-            if (queryResultSetIterator.HasMoreResults)
+            try
             {
-                FeedResponse<GroceryListDB> currentResultSet = await queryResultSetIterator.ReadNextAsync();
-                dataset = currentResultSet.FirstOrDefault();
+                FeedIterator<T> queryResultSetIterator = container.GetItemQueryIterator<T>(queryDefinition, requestOptions: queryRequestOptions);
+
+                T entity = null;
+                if (queryResultSetIterator.HasMoreResults)
+                {
+                    FeedResponse<T> currentResultSet = await queryResultSetIterator.ReadNextAsync();
+                    entity = currentResultSet.FirstOrDefault();
+                }
+
+                return new OperationResult<T>(ResultCode.Success, entity, null);
             }
-
-            return dataset;
-        }
-
-        public static async Task<GroceryListDB> GetOrCreateGroceryList(string listId)
-        {
-            GroceryListDB dataset = await GetGroceryList(listId);
-
-            if (dataset == null)
+            catch (Exception ex)
             {
-                dataset = new GroceryListDB(listId);
+                return new OperationResult<T>(ResultCode.GenericError, null, ex);
             }
-
-            return dataset;
         }
 
-        public static async Task<GroceryListDB> CreateGroceryList(GroceryListDB dataset)
-        {
-            ItemResponse<GroceryListDB> createResponse = await container.CreateItemAsync<GroceryListDB>(
-                dataset,
-                new PartitionKey(GroceryListDB.GroceryListAppId));
-            return createResponse.Resource;
-        }
-
-        public static async Task<GroceryListDB> UpdateGroceryList(GroceryListDB dataset)
+        public static async Task<OperationResult<T>> Update<T>(T entity) where T : CosmosDocument
         {
             try
             {
                 ItemRequestOptions requestOptions = new ItemRequestOptions
                 {
-                    IfMatchEtag = dataset._etag
+                    IfMatchEtag = entity._etag
                 };
 
-                ItemResponse<GroceryListDB> updateResponse = await container.ReplaceItemAsync<GroceryListDB>(
-                    dataset,
-                    dataset.id,
-                    new PartitionKey(GroceryListDB.GroceryListAppId),
+                ItemResponse<T> updateResponse = await container.ReplaceItemAsync<T>(
+                    entity,
+                    entity.id,
+                    new PartitionKey(entity.AppId),
                     requestOptions);
-                return updateResponse.Resource;
+
+                if (updateResponse.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    return new OperationResult<T>(ResultCode.Success, updateResponse.Resource, null);
+                }
+                else
+                {
+                    return new OperationResult<T>(ResultCode.GenericError, updateResponse.Resource, null);
+                }
             }
             catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.PreconditionFailed)
             {
-                // Handle the case where the ETag does not match
+                return new OperationResult<T>(ResultCode.PreconditionFailed, null, null);
             }
-
-            return null;
         }
 
+        public static async Task<OperationResult<T>> Delete<T>(T entity) where T : CosmosDocument
+        {
+            try
+            {
+                ItemRequestOptions requestOptions = new ItemRequestOptions
+                {
+                    IfMatchEtag = entity._etag
+                };
+
+                ItemResponse<T> deleteResponse = await container.DeleteItemAsync<T>(
+                    entity.id,
+                    new PartitionKey(entity.AppId),
+                    requestOptions);
+
+                if (deleteResponse.StatusCode == System.Net.HttpStatusCode.NoContent)
+                {
+                    return new OperationResult<T>(ResultCode.Success, null, null);
+                }
+                else
+                {
+                    return new OperationResult<T>(ResultCode.GenericError, null, null);
+                }
+            }
+            catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.PreconditionFailed)
+            {
+                return new OperationResult<T>(ResultCode.PreconditionFailed, null, null);
+            }
+        }
+
+        public static async Task<OperationResult<List<T>>> ListAll<T>(string appId) where T : CosmosDocument
+        {
+            QueryRequestOptions queryRequestOptions = new QueryRequestOptions() { PartitionKey = new PartitionKey(appId) };
+
+            string query = "SELECT * FROM c WHERE c.AppId = @appId";
+            QueryDefinition queryDefinition = new QueryDefinition(query)
+                .WithParameter("@appId", appId);
+
+            try
+            {
+                FeedIterator<T> iterator = container.GetItemQueryIterator<T>(queryDefinition, requestOptions: queryRequestOptions);
+
+                List<T> results = new List<T>();
+                while (iterator.HasMoreResults)
+                {
+                    FeedResponse<T> currentResults = await iterator.ReadNextAsync();
+                    results.AddRange(currentResults);
+                }
+
+                return new OperationResult<List<T>>(ResultCode.Success, results, null);
+            }
+            catch (Exception ex)
+            {
+                return new OperationResult<List<T>>(ResultCode.GenericError, null, ex);
+            }
+        }
 
         public static async Task<AddressBookEntry> CreateAddressBookEntry(AddressBookEntry entry)
         {

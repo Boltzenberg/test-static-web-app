@@ -2,29 +2,23 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Boltzenberg.Functions.DataModels.GroceryList
 {
-    public class GroceryListDB
+    public class GroceryListDB : CosmosDocument
     {
         public static string GroceryListAppId = "GroceryList";
 
-        public string AppId { get; set; }
         public List<GroceryListItem> Items { get; set; }
-        public string id { get; set; }
-        public string _etag { get; set; }
 
         public GroceryListDB()
+            : base(GroceryListAppId)
         {
-            this.AppId = GroceryListAppId;
             this.Items = new List<GroceryListItem>();
-            this.id = string.Empty;
-            this._etag = string.Empty;
         }
 
         public GroceryListDB(string listId)
+            : base(GroceryListAppId)
         {
-            this.AppId = GroceryListAppId;
             this.Items = new List<GroceryListItem>();
             this.id = listId;
-            this._etag = string.Empty;
         }
 
         public static GroceryListDB GetCannedDB(string listId)

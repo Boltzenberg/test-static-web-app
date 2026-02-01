@@ -143,7 +143,7 @@
         });
         if (response.ok) {
           const data = await response.json();
-          //alert(data);
+          alert(data);
           updateCheckboxes(data);
         } else {
           alert(response.statusText);
