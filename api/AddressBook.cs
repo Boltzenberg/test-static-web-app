@@ -1,3 +1,4 @@
+using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Boltzenberg.Functions.DataModels.AddressBook;
@@ -40,8 +41,8 @@ public class AddressBook
                 entry = JsonSerializer.Deserialize<AddressBookEntry>(body);
                 entry.id = Guid.NewGuid().ToString();
 
-                entry = await JsonStore.CreateAddressBookEntry(entry);
-                return new OkObjectResult(JsonSerializer.Serialize(entry));
+                var result = await JsonStore.Create(entry);
+                return new OkObjectResult(JsonSerializer.Serialize(result.Entity));
             }
 
             return new BadRequestResult();
@@ -64,22 +65,21 @@ public class AddressBook
                 return new UnauthorizedObjectResult("No auth header found");
             }
             */
-            AddressBookEntry entry = null;
+
             string body = await new StreamReader(req.Body).ReadToEndAsync();
             if (!string.IsNullOrEmpty(body))
             {
                 _logger.LogInformation("Request Body: " + body);
-                entry = JsonSerializer.Deserialize<AddressBookEntry>(body);
+                AddressBookEntry entry = JsonSerializer.Deserialize<AddressBookEntry>(body);
 
-                entry = await JsonStore.UpdateAddressBookEntry(entry);
-                if (entry != null)
+                var result = await JsonStore.Update(entry);
+                if (result.Code == ResultCode.Success && result.Entity != null)
                 {
-                    return new OkObjectResult(JsonSerializer.Serialize(entry));
+                    return new OkObjectResult(JsonSerializer.Serialize(result.Entity));
                 }
-                else
+                else if (result.Code == ResultCode.PreconditionFailed)
                 {
-                    // precondition failed
-                    return new StatusCodeResult(412);
+                    return new StatusCodeResult((int)HttpStatusCode.PreconditionFailed);
                 }
             }
 
@@ -109,15 +109,14 @@ public class AddressBook
                 _logger.LogInformation("Request Body: " + body);
                 AddressBookEntry entry = JsonSerializer.Deserialize<AddressBookEntry>(body);
 
-                bool deleted = await JsonStore.DeleteAddressBookEntry(entry);
-                if (deleted)
+                var result = await JsonStore.Delete(entry);
+                if (result.Code == ResultCode.Success)
                 {
                     return new NoContentResult();
                 }
-                else
+                else if (result.Code == ResultCode.PreconditionFailed)
                 {
-                    // precondition failed
-                    return new StatusCodeResult((int)System.Net.HttpStatusCode.PreconditionFailed);
+                    return new StatusCodeResult((int)HttpStatusCode.PreconditionFailed);
                 }
             }
 
@@ -142,8 +141,15 @@ public class AddressBook
             }
             */
 
-            List<AddressBookEntry> entries = await JsonStore.GetAddressBookEntries();
-            return new OkObjectResult(JsonSerializer.Serialize(entries.ToArray()));
+            var entries = await JsonStore.ReadAll<AddressBookEntry>(AddressBookEntry.AddressBookEntryAppId);
+            if (entries.Code == ResultCode.Success)
+            {
+                return new OkObjectResult(JsonSerializer.Serialize(entries.Entity));
+            }
+            else
+            {
+                return new BadRequestResult();
+            }
         }
         catch (Exception ex)
         {

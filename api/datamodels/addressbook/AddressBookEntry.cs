@@ -1,12 +1,9 @@
 namespace Boltzenberg.Functions.DataModels.AddressBook
 {
-    public class AddressBookEntry
+    public class AddressBookEntry : CosmosDocument
     {
         public static string AddressBookEntryAppId = "AddressBookEntry";
 
-        public string AppId { get; set; }
-        public string id { get; set; }
-        public string _etag { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string Street { get; set; }
@@ -20,10 +17,8 @@ namespace Boltzenberg.Functions.DataModels.AddressBook
         public string HolidayCard { get; set; }
 
         public AddressBookEntry()
+            : base(AddressBookEntryAppId)
         {
-            this.AppId = AddressBookEntryAppId;
-            this.id = string.Empty;
-            this._etag = string.Empty;
             this.FirstName = string.Empty;
             this.LastName = string.Empty;
             this.Street = string.Empty;
