@@ -6,6 +6,7 @@
   <style>
     body { font-family: sans-serif; padding: 20px; }
     #status { margin-top: 10px; color: #666; }
+    #addressDisplay { margin-top: 20px; font-size: 1.1em; }
   </style>
 </head>
 <body>
@@ -18,7 +19,11 @@
 
   <div id="status"></div>
 
+  <div id="addressDisplay"></div>
+
   <script>
+    let addressEntries = []; // store entries for lookup
+
     async function loadAddressBook() {
       const dropdown = document.getElementById('addressDropdown');
       const status = document.getElementById('status');
@@ -31,18 +36,14 @@
           throw new Error(`API returned ${response.status}`);
         }
 
-        const entries = await response.json();
+        addressEntries = await response.json();
 
         dropdown.innerHTML = ""; // clear "Loading..."
 
-        entries.forEach(entry => {
+        addressEntries.forEach(entry => {
           const option = document.createElement('option');
 
-          // Choose how you want to display names
-          const displayName =
-            entry.mailingName ||
-            `${entry.firstName ?? ''} ${entry.lastName ?? ''}`.trim() ||
-            "(Unnamed Entry)";
+          const displayName = `${entry.LastName ?? ''} ${entry.FirstName ?? ''}`.trim();
 
           option.value = entry.id;
           option.textContent = displayName;
@@ -50,7 +51,7 @@
           dropdown.appendChild(option);
         });
 
-        status.textContent = `Loaded ${entries.length} entries`;
+        status.textContent = `Loaded ${addressEntries.length} entries`;
       }
       catch (err) {
         status.textContent = "Failed to load address book entries.";
@@ -58,6 +59,31 @@
         dropdown.innerHTML = "<option>Error loading entries</option>";
       }
     }
+
+    function showAddress(entry) {
+      const div = document.getElementById('addressDisplay');
+
+      if (!entry) {
+        div.textContent = "";
+        return;
+      }
+
+      const lines = [
+        entry.MailingName || `${entry.FirstName ?? ''} ${entry.LastName ?? ''}`.trim(),
+        entry.Street,
+        entry.Apartment,
+        `${entry.City ?? ''}, ${entry.State ?? ''} ${entry.ZipCode ?? ''}`.trim(),
+        entry.PhoneNumber
+      ].filter(x => x && x.length > 0);
+
+      div.innerHTML = lines.join("<br>");
+    }
+
+    document.getElementById('addressDropdown').addEventListener('change', (e) => {
+      const selectedId = e.target.value;
+      const entry = addressEntries.find(x => x.id === selectedId);
+      showAddress(entry);
+    });
 
     loadAddressBook();
   </script>
