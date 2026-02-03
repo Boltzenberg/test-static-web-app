@@ -30,6 +30,7 @@
   </select>
 
   <div id="addressDisplay"></div>
+  <div id="linksDiv" style="margin-top: 20px;"></div>
 
   <div id="status"></div>
   <div id="authContainer"></div>
@@ -135,8 +136,7 @@
       }
 
       const lines = [
-        entry.MailingName ||
-          `${entry.FirstName ?? ''} ${entry.LastName ?? ''}`.trim(),
+        entry.MailingName || `${entry.FirstName ?? ''} ${entry.LastName ?? ''}`.trim(),
         entry.Street,
         entry.Apartment,
         `${entry.City ?? ''}, ${entry.State ?? ''} ${entry.ZipCode ?? ''}`.trim(),
@@ -144,7 +144,8 @@
       ].filter(x => x);
 
       div.innerHTML = lines.join("<br>");
-      div.innerHTML += `<br><a href="edit.html?id=${encodeURIComponent(entry.id)}">Edit this entry</a>`
+
+      document.getElementById("linksDiv").innerHTML = `<a href="edit.html?id=${encodeURIComponent(entry.id)}">Edit this entry</a>`;
     }
 
     document.getElementById('addressDropdown').addEventListener('change', (e) => {
