@@ -107,8 +107,16 @@
         // Clear the status field and show the first entry
         status.textContent = "";
         if (addressEntries.length > 0) {
-          dropdown.value = addressEntries[0].id;
-          showAddress(addressEntries[0]);
+          const params = new URLSearchParams(window.location.search);
+          const id = params.get("id");
+
+          if (!id) {
+            dropdown.value = addressEntries[0].id;
+            showAddress(addressEntries[0]);
+          } else {
+            dropdown.value = id;
+            showAddress(addressEntries.find(x => x.id === id));
+          }
         }
       }
       catch (err) {
@@ -136,7 +144,7 @@
       ].filter(x => x);
 
       div.innerHTML = lines.join("<br>");
-      div.innerHTML += `<br><a href="/edit.html?id=${encodeURIComponent(entry.id)}">Edit this entry</a>`
+      div.innerHTML += `<br><a href="edit.html?id=${encodeURIComponent(entry.id)}">Edit this entry</a>`
     }
 
     document.getElementById('addressDropdown').addEventListener('change', (e) => {

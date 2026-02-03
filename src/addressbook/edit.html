@@ -28,51 +28,67 @@
   <h2 id="pageTitle" style="display:none;">Edit Address Book Entry</h2>
 
   <form id="editForm" style="display:none;">
-    <label>Mailing Name
-      <input id="MailingName" />
-    </label>
+    <table>
+    <tr>
+        <td style="text-align:right; padding-right:10px;">Mailing Name</td>
+        <td><input id="MailingName" /></td>
+    </tr>
 
-    <label>First Name
-      <input id="FirstName" />
-    </label>
+    <tr>
+        <td style="text-align:right; padding-right:10px;">First Name</td>
+        <td><input id="FirstName" /></td>
+    </tr>
 
-    <label>Last Name
-      <input id="LastName" />
-    </label>
+    <tr>
+        <td style="text-align:right; padding-right:10px;">Last Name</td>
+        <td><input id="LastName" /></td>
+    </tr>
 
-    <label>Street
-      <input id="Street" />
-    </label>
+    <tr>
+        <td style="text-align:right; padding-right:10px;">Street</td>
+        <td><input id="Street" /></td>
+    </tr>
 
-    <label>Apartment
-      <input id="Apartment" />
-    </label>
+    <tr>
+        <td style="text-align:right; padding-right:10px;">Apartment</td>
+        <td><input id="Apartment" /></td>
+    </tr>
 
-    <label>City
-      <input id="City" />
-    </label>
+    <tr>
+        <td style="text-align:right; padding-right:10px;">City</td>
+        <td><input id="City" /></td>
+    </tr>
 
-    <label>State
-      <input id="State" />
-    </label>
+    <tr>
+        <td style="text-align:right; padding-right:10px;">State</td>
+        <td><input id="State" /></td>
+    </tr>
 
-    <label>Zip Code
-      <input id="ZipCode" />
-    </label>
+    <tr>
+        <td style="text-align:right; padding-right:10px;">Zip Code</td>
+        <td><input id="ZipCode" /></td>
+    </tr>
 
-    <label>Phone Number
-      <input id="PhoneNumber" />
-    </label>
+    <tr>
+        <td style="text-align:right; padding-right:10px;">Phone Number</td>
+        <td><input id="PhoneNumber" /></td>
+    </tr>
 
-    <label>Other People
-      <input id="OtherPeople" />
-    </label>
+    <tr>
+        <td style="text-align:right; padding-right:10px;">Other People</td>
+        <td><input id="OtherPeople" /></td>
+    </tr>
 
-    <label>Holiday Card
-      <input id="HolidayCard" />
-    </label>
+    <tr>
+        <td style="text-align:right; padding-right:10px;">Holiday Card</td>
+        <td><input id="HolidayCard" /></td>
+    </tr>
 
-    <button type="button" id="saveBtn">Save Changes</button>
+    <tr>
+        <td></td>
+        <td><button type="button" id="saveBtn">Save Changes</button></td>
+    </tr>
+    </table>
   </form>
 
   <div id="status"></div>
@@ -148,6 +164,8 @@
       ]) {
         document.getElementById(key).value = currentEntry[key] ?? "";
       }
+
+      status.innerHTML = `<a href="index.html?id=${encodeURIComponent(id)}">Home</a>`;
     }
 
     // -------------------------
@@ -164,7 +182,7 @@
         currentEntry[key] = document.getElementById(key).value;
       }
 
-      const res = await fetch('/api/AddressBookUpdate', {
+      const res = await fetch('/api/AddressBookUpdateEntry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(currentEntry)
