@@ -1,5 +1,3 @@
-using Boltzenberg.Functions.DataModels;
-
 namespace Boltzenberg.Functions.Storage
 {
     public enum ResultCode
@@ -12,10 +10,10 @@ namespace Boltzenberg.Functions.Storage
     public class OperationResult<T>
     {
         public ResultCode Code { get; }
-        public T Entity { get; }
-        public Exception Error { get; }
+        public T? Entity { get; }
+        public Exception? Error { get; }
 
-        public OperationResult(ResultCode code, T entity, Exception error)
+        public OperationResult(ResultCode code, T? entity, Exception? error)
         {
             this.Code = code;
             this.Entity = entity;

@@ -33,14 +33,18 @@ public class AddressBook
                 return new UnauthorizedObjectResult("No auth header found");
             }
             */
-            AddressBookEntry entry = null;
+            AddressBookEntry? entry = null;
             string body = await new StreamReader(req.Body).ReadToEndAsync();
             if (!string.IsNullOrEmpty(body))
             {
                 _logger.LogInformation("Request Body: " + body);
                 entry = JsonSerializer.Deserialize<AddressBookEntry>(body);
-                entry.id = Guid.NewGuid().ToString();
+                if (entry == null)
+                {
+                    return new BadRequestObjectResult("Failed to deserialize the entry to add");
+                }
 
+                entry.id = Guid.NewGuid().ToString();
                 var result = await JsonStore.Create(entry);
                 return new OkObjectResult(JsonSerializer.Serialize(result.Entity));
             }
@@ -70,7 +74,11 @@ public class AddressBook
             if (!string.IsNullOrEmpty(body))
             {
                 _logger.LogInformation("Request Body: " + body);
-                AddressBookEntry entry = JsonSerializer.Deserialize<AddressBookEntry>(body);
+                AddressBookEntry? entry = JsonSerializer.Deserialize<AddressBookEntry>(body);
+                if (entry == null)
+                {
+                    return new BadRequestResult();
+                }
 
                 var result = await JsonStore.Update(entry);
                 if (result.Code == ResultCode.Success && result.Entity != null)
@@ -107,7 +115,11 @@ public class AddressBook
             if (!string.IsNullOrEmpty(body))
             {
                 _logger.LogInformation("Request Body: " + body);
-                AddressBookEntry entry = JsonSerializer.Deserialize<AddressBookEntry>(body);
+                AddressBookEntry? entry = JsonSerializer.Deserialize<AddressBookEntry>(body);
+                if (entry == null)
+                {
+                    return new BadRequestObjectResult("Failed to deserialize the entry to delete");
+                }
 
                 var result = await JsonStore.Delete(entry);
                 if (result.Code == ResultCode.Success)
@@ -158,7 +170,7 @@ public class AddressBook
     }
 
     [Function("AddressBookGetCanned")]
-    public async Task<IActionResult> AddressBookGetCanned([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest req)
+    public IActionResult AddressBookGetCanned([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest req)
     {
         try
         {

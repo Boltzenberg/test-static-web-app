@@ -15,15 +15,55 @@ public class SubmitContactForm
     private const string Subject = "Message from your website";
     private static string MailJetAPIKey = Environment.GetEnvironmentVariable("MAILJET_API_KEY") ?? string.Empty;
     private static string MailJetSecretKey = Environment.GetEnvironmentVariable("MAILJET_SECRET_KEY") ?? string.Empty;
+    private static readonly HttpClient httpClient = new HttpClient();
 
     public SubmitContactForm(ILogger<SubmitContactForm> logger)
     {
         _logger = logger;
     }
 
+    private static async Task<bool> MailJetSantaMailAsync(string toAddress, string toName, string body)
+    {
+        var url = "https://api.mailjet.com/v3.1/send";
+
+        // Build the request payload using anonymous objects
+        var payload = new
+        {
+            Messages = new[]
+            {
+                new
+                {
+                    From = new { Email = FromAddress, Name = FromName },
+                    To = new[] { new { Email = toAddress, Name = toName } },
+                    Subject = Subject,
+                    HTMLPart = body.Replace(Environment.NewLine, "<br>")
+                }
+            }
+        };
+
+        // Serialize to JSON
+        string json = System.Text.Json.JsonSerializer.Serialize(payload);
+
+        // Build the request
+        var request = new HttpRequestMessage(HttpMethod.Post, url)
+        {
+            Content = new StringContent(json, Encoding.UTF8, "application/json")
+        };
+
+        // Add Basic Auth header
+        string auth = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{MailJetAPIKey}:{MailJetSecretKey}"));
+        request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", auth);
+
+        // Send
+        var response = await httpClient.SendAsync(request);
+
+        return response.IsSuccessStatusCode;
+    }
+
+
     private static bool MailJetSantaMail(string toAddress, string toName, string body)
     {
-        HttpWebRequest req = HttpWebRequest.CreateHttp("https://api.mailjet.com/v3.1/send");
+        HttpWebRequest? req = HttpWebRequest.CreateHttp("https://api.mailjet.com/v3.1/send");
         req.Method = "POST";
         req.ContentType = "application/json";
         req.Headers.Add("Authorization", "Basic " + Convert.ToBase64String(Encoding.ASCII.GetBytes(MailJetAPIKey + ":" + MailJetSecretKey)));
@@ -46,9 +86,16 @@ public class SubmitContactForm
             writer.Flush();
         }
 
-        using (HttpWebResponse res = req.GetResponse() as HttpWebResponse)
+        using (HttpWebResponse? res = req.GetResponse() as HttpWebResponse)
         {
-            return res.StatusCode == HttpStatusCode.OK;
+            if (res != null)
+            {
+                return res.StatusCode == HttpStatusCode.OK;
+            }
+            else
+            {
+                return false;
+            }
         }
     }
 

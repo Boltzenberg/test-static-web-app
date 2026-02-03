@@ -1,7 +1,4 @@
-using Azure;
 using Boltzenberg.Functions.DataModels;
-using Boltzenberg.Functions.DataModels.AddressBook;
-using Boltzenberg.Functions.DataModels.GroceryList;
 using Microsoft.Azure.Cosmos;
 
 namespace Boltzenberg.Functions.Storage
@@ -9,7 +6,7 @@ namespace Boltzenberg.Functions.Storage
     public static class JsonStore
     {
         private const string EndpointUri = "https://gunga-test-cosmosdb.documents.azure.com:443/";
-        private static string PrimaryKey = Environment.GetEnvironmentVariable("GROCERY_LIST_PRIMARY_KEY");
+        private static string? PrimaryKey = Environment.GetEnvironmentVariable("GROCERY_LIST_PRIMARY_KEY");
         private static CosmosClient cosmosClient = new CosmosClient(EndpointUri, PrimaryKey);
         private static Database database = cosmosClient.GetDatabase("GungaDB");
         private static Container container = database.GetContainer("DocumentsContainer");
@@ -50,7 +47,7 @@ namespace Boltzenberg.Functions.Storage
             {
                 FeedIterator<T> queryResultSetIterator = container.GetItemQueryIterator<T>(queryDefinition, requestOptions: queryRequestOptions);
 
-                T entity = null;
+                T? entity = null;
                 if (queryResultSetIterator.HasMoreResults)
                 {
                     FeedResponse<T> currentResultSet = await queryResultSetIterator.ReadNextAsync();

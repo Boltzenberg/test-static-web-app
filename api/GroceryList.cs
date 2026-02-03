@@ -20,7 +20,7 @@ namespace Boltzenberg.Functions
         [Function("CreateGroceryList")]
         public async Task<IActionResult> CreateGroceryList([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequest req)
         {
-            string listId = req.Headers["X-List-ID"];
+            string? listId = req.Headers["X-List-ID"];
             if (string.IsNullOrEmpty(listId))
             {
                 return new BadRequestObjectResult("X-List-ID header is required");
@@ -39,34 +39,34 @@ namespace Boltzenberg.Functions
         [Function("UpdateGroceryList")]
         public async Task<IActionResult> UpdateGroceryList([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequest req)
         {
-            string listId = req.Headers["X-List-ID"];
+            string? listId = req.Headers["X-List-ID"];
             if (string.IsNullOrEmpty(listId))
             {
                 return new BadRequestObjectResult("X-List-ID header is required");
             }
 
-            OperationResult<GroceryListDB> result = null;
+            OperationResult<GroceryListDB>? result = null;
 
-            if (req.Method.ToLowerInvariant() == "post")
+            if (string.Equals(req.Method, "post", StringComparison.OrdinalIgnoreCase))
             {
                 string body = await new StreamReader(req.Body).ReadToEndAsync();
                 if (!string.IsNullOrEmpty(body))
                 {
                     _logger.LogInformation("Request Body: " + body);
-                    UpdateGroceryListPayload reqBody = JsonSerializer.Deserialize<UpdateGroceryListPayload>(body);
+                    UpdateGroceryListPayload? reqBody = JsonSerializer.Deserialize<UpdateGroceryListPayload>(body);
                     if (reqBody != null)
                     {
                         do
                         {
                             result = await JsonStore.Read<GroceryListDB>(GroceryListDB.GroceryListAppId, listId);
-                            if (result.Code == ResultCode.GenericError)
+                            if (result == null || result.Entity == null || result.Code == ResultCode.GenericError)
                             {
                                 return new BadRequestObjectResult("Failed to find the grocery list");
                             }
 
                             foreach (GroceryListItem item in reqBody.ToRemove)
                             {
-                                GroceryListItem itemToRemove = result.Entity.Items.Where(i => i.Item == item.Item).FirstOrDefault();
+                                GroceryListItem? itemToRemove = result.Entity.Items.Where(i => i.Item == item.Item).FirstOrDefault();
                                 if (itemToRemove != null)
                                 {
                                     result.Entity.Items.Remove(itemToRemove);
@@ -86,6 +86,11 @@ namespace Boltzenberg.Functions
             else
             {
                 result = await JsonStore.Read<GroceryListDB>(GroceryListDB.GroceryListAppId, listId);
+            }
+
+            if (result == null || result.Entity == null)
+            {
+                return new BadRequestResult();
             }
 
             string response = JsonSerializer.Serialize(result.Entity.Items);

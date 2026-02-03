@@ -2,27 +2,77 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Address Book Dropdown</title>
+  <title>Address Book</title>
   <style>
     body { font-family: sans-serif; padding: 20px; }
     #status { margin-top: 10px; color: #666; }
     #addressDisplay { margin-top: 20px; font-size: 1.1em; }
+    #authContainer { margin-bottom: 20px; }
+    button {
+      padding: 8px 16px;
+      background: #0067c5;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #004f9e;
+    }
   </style>
 </head>
 <body>
 
-  <h2>Select an Address Book Entry</h2>
+  <div id="authContainer"></div>
 
-  <select id="addressDropdown">
+  <h2 id="pageTitle" style="display:none;">Select an Address Book Entry</h2>
+
+  <select id="addressDropdown" style="display:none;">
     <option value="">Loading...</option>
   </select>
 
   <div id="status"></div>
-
   <div id="addressDisplay"></div>
 
   <script>
-    let addressEntries = []; // store entries for lookup
+    let addressEntries = [];
+
+    async function checkAuth() {
+      const authDiv = document.getElementById('authContainer');
+
+      try {
+        const res = await fetch('/.auth/me');
+        const data = await res.json();
+
+        const user = data?.clientPrincipal;
+
+        if (!user) {
+          authDiv.innerHTML = `
+            <p>You must sign in to view your address book.</p>
+            <button id="signInBtn">Sign in with Microsoft</button>
+          `;
+          document.getElementById('signInBtn').onclick = () => {
+            window.location.href = '/.auth/login/aad';
+          };
+          return false;
+        }
+
+        authDiv.innerHTML = `
+          <p>Signed in as <strong>${user.userDetails}</strong></p>
+          <button id="signOutBtn">Sign out</button>
+        `;
+        document.getElementById('signOutBtn').onclick = () => {
+          window.location.href = '/.auth/logout';
+        };
+
+        return true;
+
+      } catch (err) {
+        authDiv.textContent = "Error checking authentication.";
+        console.error(err);
+        return false;
+      }
+    }
 
     async function loadAddressBook() {
       const dropdown = document.getElementById('addressDropdown');
@@ -32,18 +82,19 @@
         status.textContent = "Loading address book entries…";
 
         const response = await fetch('/api/AddressBookReadAll');
-        if (!response.ok) {
-          throw new Error(`API returned ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`API returned ${response.status}`);
 
         addressEntries = await response.json();
 
-        dropdown.innerHTML = ""; // clear "Loading..."
+        dropdown.innerHTML = "";
 
         addressEntries.forEach(entry => {
           const option = document.createElement('option');
 
-          const displayName = `${entry.LastName ?? ''} ${entry.FirstName ?? ''}`.trim();
+          const displayName =
+            entry.MailingName ||
+            `${entry.FirstName ?? ''} ${entry.LastName ?? ''}`.trim() ||
+            "(Unnamed Entry)";
 
           option.value = entry.id;
           option.textContent = displayName;
@@ -69,12 +120,13 @@
       }
 
       const lines = [
-        entry.MailingName || `${entry.FirstName ?? ''} ${entry.LastName ?? ''}`.trim(),
+        entry.MailingName ||
+          `${entry.FirstName ?? ''} ${entry.LastName ?? ''}`.trim(),
         entry.Street,
         entry.Apartment,
         `${entry.City ?? ''}, ${entry.State ?? ''} ${entry.ZipCode ?? ''}`.trim(),
         entry.PhoneNumber
-      ].filter(x => x && x.length > 0);
+      ].filter(x => x);
 
       div.innerHTML = lines.join("<br>");
     }
@@ -85,7 +137,15 @@
       showAddress(entry);
     });
 
-    loadAddressBook();
+    (async function init() {
+      const isAuthed = await checkAuth();
+      if (!isAuthed) return;
+
+      document.getElementById('pageTitle').style.display = 'block';
+      document.getElementById('addressDropdown').style.display = 'inline-block';
+
+      await loadAddressBook();
+    })();
   </script>
 
 </body>
