@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Edit Address Book Entry</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    label { display: block; margin-top: 10px; font-weight: bold; }
+    input { width: 300px; padding: 6px; margin-top: 4px; }
+    #authContainer { margin-bottom: 20px; }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background: #0067c5;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover { background: #004f9e; }
+    #status { margin-top: 20px; }
+  </style>
+</head>
+<body>
+
+  <div id="authContainer"></div>
+
+  <h2 id="pageTitle" style="display:none;">Edit Address Book Entry</h2>
+
+  <form id="editForm" style="display:none;">
+    <label>Mailing Name
+      <input id="MailingName" />
+    </label>
+
+    <label>First Name
+      <input id="FirstName" />
+    </label>
+
+    <label>Last Name
+      <input id="LastName" />
+    </label>
+
+    <label>Street
+      <input id="Street" />
+    </label>
+
+    <label>Apartment
+      <input id="Apartment" />
+    </label>
+
+    <label>City
+      <input id="City" />
+    </label>
+
+    <label>State
+      <input id="State" />
+    </label>
+
+    <label>Zip Code
+      <input id="ZipCode" />
+    </label>
+
+    <label>Phone Number
+      <input id="PhoneNumber" />
+    </label>
+
+    <label>Other People
+      <input id="OtherPeople" />
+    </label>
+
+    <label>Holiday Card
+      <input id="HolidayCard" />
+    </label>
+
+    <button type="button" id="saveBtn">Save Changes</button>
+  </form>
+
+  <div id="status"></div>
+
+  <script>
+    let currentEntry = null;
+
+    // -------------------------
+    // AUTH CHECK
+    // -------------------------
+    async function checkAuth() {
+      const authDiv = document.getElementById('authContainer');
+
+      try {
+        const res = await fetch('/.auth/me');
+        const data = await res.json();
+        const user = data?.clientPrincipal;
+
+        if (!user) {
+          authDiv.innerHTML = `
+            <p>You must sign in to edit address book entries.</p>
+            <button id="signInBtn">Sign in with Microsoft</button>
+          `;
+          document.getElementById('signInBtn').onclick = () => {
+            const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
+            window.location.href = '/.auth/login/aad?post_login_redirect_uri=' + returnUrl;
+          };
+          return false;
+        }
+
+        authDiv.innerHTML = `
+          <p>Signed in as <strong>${user.userDetails}</strong></p>
+          <button id="signOutBtn">Sign out</button>
+        `;
+        document.getElementById('signOutBtn').onclick = () => {
+          const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
+          window.location.href = '/.auth/logout?post_logout_redirect_uri=' + returnUrl;
+        };
+
+        return true;
+
+      } catch (err) {
+        authDiv.textContent = "Error checking authentication.";
+        console.error(err);
+        return false;
+      }
+    }
+
+    // -------------------------
+    // LOAD ENTRY BY ID
+    // -------------------------
+    async function loadEntry() {
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get("id");
+
+      if (!id) {
+        document.getElementById('status').textContent = "Missing ?id= parameter.";
+        return;
+      }
+
+      const res = await fetch(`/api/AddressBookReadOne?id=${encodeURIComponent(id)}`);
+      if (!res.ok) {
+        document.getElementById('status').textContent = "Failed to load entry.";
+        return;
+      }
+
+      currentEntry = await res.json();
+
+      // Populate form fields
+      for (const key of [
+        "MailingName", "FirstName", "LastName", "Street", "Apartment",
+        "City", "State", "ZipCode", "PhoneNumber", "OtherPeople", "HolidayCard"
+      ]) {
+        document.getElementById(key).value = currentEntry[key] ?? "";
+      }
+    }
+
+    // -------------------------
+    // SAVE CHANGES
+    // -------------------------
+    async function saveChanges() {
+      const status = document.getElementById('status');
+
+      // Copy form values back into the entry object
+      for (const key of [
+        "MailingName", "FirstName", "LastName", "Street", "Apartment",
+        "City", "State", "ZipCode", "PhoneNumber", "OtherPeople", "HolidayCard"
+      ]) {
+        currentEntry[key] = document.getElementById(key).value;
+      }
+
+      const res = await fetch('/api/AddressBookUpdate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(currentEntry)
+      });
+
+      if (res.ok) {
+        status.textContent = "Saved successfully.";
+      } else if (res.status === 412) {
+        status.textContent = "Save failed: someone else updated this entry. Please reload.";
+      } else {
+        status.textContent = "Save failed.";
+      }
+    }
+
+    document.getElementById('saveBtn').onclick = saveChanges;
+
+    // -------------------------
+    // INIT
+    // -------------------------
+    (async function init() {
+      const authed = await checkAuth();
+      if (!authed) return;
+
+      document.getElementById('pageTitle').style.display = 'block';
+      document.getElementById('editForm').style.display = 'block';
+
+      await loadEntry();
+    })();
+  </script>
+
+</body>
+</html>

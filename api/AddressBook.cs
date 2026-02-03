@@ -169,6 +169,41 @@ public class AddressBook
         }
     }
 
+    [Function("AddressBookReadOne")]
+    public async Task<IActionResult> AddressBookReadOne([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest req)
+    {
+        try
+        {
+            /*
+            ClientPrincipal? principal = ClientPrincipal.FromReq(req);
+            if (principal == null || !principal.IsAuthorizedForAddressBook())
+            {
+                return new UnauthorizedObjectResult("No auth header found");
+            }
+            */
+
+            string? entryId = req.Query["id"];
+            if (string.IsNullOrEmpty(entryId))
+            {
+                return new BadRequestObjectResult("Missing the id query parameter");
+            }
+
+            var entry = await JsonStore.Read<AddressBookEntry>(AddressBookEntry.AddressBookEntryAppId, entryId);
+            if (entry.Code == ResultCode.Success)
+            {
+                return new OkObjectResult(JsonSerializer.Serialize(entry.Entity));
+            }
+            else
+            {
+                return new BadRequestResult();
+            }
+        }
+        catch (Exception ex)
+        {
+            return new OkObjectResult(ex.ToString());
+        }
+    }
+
     [Function("AddressBookGetCanned")]
     public IActionResult AddressBookGetCanned([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest req)
     {
