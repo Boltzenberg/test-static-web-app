@@ -26,13 +26,12 @@ public class AddressBook
     {
         try
         {
-            /*
             ClientPrincipal? principal = ClientPrincipal.FromReq(req);
             if (principal == null || !principal.IsAuthorizedForAddressBook())
             {
                 return new UnauthorizedObjectResult("No auth header found");
             }
-            */
+
             AddressBookEntry? entry = null;
             string body = await new StreamReader(req.Body).ReadToEndAsync();
             if (!string.IsNullOrEmpty(body))
@@ -62,13 +61,11 @@ public class AddressBook
     {
         try
         {
-            /*
             ClientPrincipal? principal = ClientPrincipal.FromReq(req);
             if (principal == null || !principal.IsAuthorizedForAddressBook())
             {
                 return new UnauthorizedObjectResult("No auth header found");
             }
-            */
 
             string body = await new StreamReader(req.Body).ReadToEndAsync();
             if (!string.IsNullOrEmpty(body))
@@ -104,13 +101,12 @@ public class AddressBook
     {
         try
         {
-            /*
             ClientPrincipal? principal = ClientPrincipal.FromReq(req);
             if (principal == null || !principal.IsAuthorizedForAddressBook())
             {
                 return new UnauthorizedObjectResult("No auth header found");
             }
-            */
+
             string body = await new StreamReader(req.Body).ReadToEndAsync();
             if (!string.IsNullOrEmpty(body))
             {
@@ -145,13 +141,11 @@ public class AddressBook
     {
         try
         {
-            /*
             ClientPrincipal? principal = ClientPrincipal.FromReq(req);
             if (principal == null || !principal.IsAuthorizedForAddressBook())
             {
                 return new UnauthorizedObjectResult("No auth header found");
             }
-            */
 
             var entries = await JsonStore.ReadAll<AddressBookEntry>(AddressBookEntry.AddressBookEntryAppId);
             if (entries.Code == ResultCode.Success)
@@ -174,13 +168,11 @@ public class AddressBook
     {
         try
         {
-            /*
             ClientPrincipal? principal = ClientPrincipal.FromReq(req);
             if (principal == null || !principal.IsAuthorizedForAddressBook())
             {
                 return new UnauthorizedObjectResult("No auth header found");
             }
-            */
 
             string? entryId = req.Query["id"];
             if (string.IsNullOrEmpty(entryId))
