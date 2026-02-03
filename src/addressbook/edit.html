@@ -23,8 +23,6 @@
 </head>
 <body>
 
-  <div id="authContainer"></div>
-
   <h2 id="pageTitle" style="display:none;">Edit Address Book Entry</h2>
 
   <form id="editForm" style="display:none;">
@@ -91,7 +89,9 @@
     </table>
   </form>
 
+  <div id="backHome"></div>
   <div id="status"></div>
+  <div id="authContainer"></div>
 
   <script>
     let currentEntry = null;
@@ -165,7 +165,8 @@
         document.getElementById(key).value = currentEntry[key] ?? "";
       }
 
-      status.innerHTML = `<a href="index.html?id=${encodeURIComponent(id)}">Home</a>`;
+      const backHomeDiv = document.getElementById('backHome');
+      backHomeDiv.innerHTML = `<a href="index.html?id=${encodeURIComponent(id)}">Home</a>`;
     }
 
     // -------------------------
