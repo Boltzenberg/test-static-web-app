@@ -29,7 +29,7 @@
     <option value="">Loading...</option>
   </select>
 
-  <div id="addressDisplay"></div>
+  <div id="addressDisplay" style="min-height: 110px;"></div>
   <div id="linksDiv" style="margin-top: 20px;"></div>
 
   <div id="status"></div>
@@ -128,14 +128,15 @@
     }
 
     function showAddress(entry) {
-      const div = document.getElementById('addressDisplay');
+      const addressDisplayDiv = document.getElementById('addressDisplay');
+      const linksDiv = document.getElementById('linksDiv');
 
       if (!entry) {
-        div.textContent = "";
+        addressDisplayDiv.textContent = "";
         return;
       }
 
-      const lines = [
+      const addressLines = [
         entry.MailingName || `${entry.FirstName ?? ''} ${entry.LastName ?? ''}`.trim(),
         entry.Street,
         entry.Apartment,
@@ -143,9 +144,13 @@
         entry.PhoneNumber
       ].filter(x => x);
 
-      div.innerHTML = lines.join("<br>");
+      addressDisplayDiv.innerHTML = addressLines.join("<br>");
 
-      document.getElementById("linksDiv").innerHTML = `<a href="edit.html?id=${encodeURIComponent(entry.id)}">Edit this entry</a>`;
+      const linksLines = [
+        `<a href="edit.html?id=${encodeURIComponent(entry.id)}">Edit this entry</a>`,
+        `<a href="add.html">Add new entry</a>`
+      ];
+      linksDiv.innerHTML = linksLInes.join("<br>");
     }
 
     document.getElementById('addressDropdown').addEventListener('change', (e) => {

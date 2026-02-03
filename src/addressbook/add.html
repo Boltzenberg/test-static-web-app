@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Add Address Book Entry</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    #authContainer { margin-bottom: 20px; }
+    table td { padding: 6px; }
+    table td:first-child { text-align: right; padding-right: 10px; }
+    input { width: 300px; padding: 6px; }
+    button {
+      padding: 10px 20px;
+      background: #0067c5;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover { background: #004f9e; }
+    #status { margin-top: 20px; }
+  </style>
+</head>
+<body>
+
+  <h2 id="pageTitle" style="display:none;">Add New Address Book Entry</h2>
+
+  <form id="addForm" style="display:none;">
+    <table>
+      <tr><td>Mailing Name</td><td><input id="MailingName" /></td></tr>
+      <tr><td>First Name</td><td><input id="FirstName" /></td></tr>
+      <tr><td>Last Name</td><td><input id="LastName" /></td></tr>
+      <tr><td>Street</td><td><input id="Street" /></td></tr>
+      <tr><td>Apartment</td><td><input id="Apartment" /></td></tr>
+      <tr><td>City</td><td><input id="City" /></td></tr>
+      <tr><td>State</td><td><input id="State" /></td></tr>
+      <tr><td>Zip Code</td><td><input id="ZipCode" /></td></tr>
+      <tr><td>Phone Number</td><td><input id="PhoneNumber" /></td></tr>
+      <tr><td>Other People</td><td><input id="OtherPeople" /></td></tr>
+      <tr><td>Holiday Card</td><td><input id="HolidayCard" /></td></tr>
+
+      <tr>
+        <td></td>
+        <td><button type="button" id="addBtn">Add Entry</button></td>
+      </tr>
+    </table>
+  </form>
+
+  <div id="linksDiv">
+    <a href="index.html">Home</a>
+  </div>
+  <div id="status"></div>
+  <div id="authContainer"></div>
+  
+  <script>
+    // -------------------------
+    // AUTH CHECK
+    // -------------------------
+    async function checkAuth() {
+      const authDiv = document.getElementById('authContainer');
+
+      try {
+        const res = await fetch('/.auth/me');
+        const data = await res.json();
+        const user = data?.clientPrincipal;
+
+        if (!user) {
+          authDiv.innerHTML = `
+            <p>You must sign in to add address book entries.</p>
+            <button id="signInBtn">Sign in with Microsoft</button>
+          `;
+          document.getElementById('signInBtn').onclick = () => {
+            const returnUrl = encodeURIComponent(window.location.pathname);
+            window.location.href = '/.auth/login/aad?post_login_redirect_uri=' + returnUrl;
+          };
+          return false;
+        }
+
+        authDiv.innerHTML = `
+          <p>Signed in as <strong>${user.userDetails}</strong></p>
+          <button id="signOutBtn">Sign out</button>
+        `;
+        document.getElementById('signOutBtn').onclick = () => {
+          const returnUrl = encodeURIComponent(window.location.pathname);
+          window.location.href = '/.auth/logout?post_logout_redirect_uri=' + returnUrl;
+        };
+
+        return true;
+
+      } catch (err) {
+        authDiv.textContent = "Error checking authentication.";
+        console.error(err);
+        return false;
+      }
+    }
+
+    // -------------------------
+    // ADD ENTRY
+    // -------------------------
+    async function addEntry() {
+      const status = document.getElementById('status');
+
+      const newEntry = {
+        MailingName: document.getElementById("MailingName").value,
+        FirstName: document.getElementById("FirstName").value,
+        LastName: document.getElementById("LastName").value,
+        Street: document.getElementById("Street").value,
+        Apartment: document.getElementById("Apartment").value,
+        City: document.getElementById("City").value,
+        State: document.getElementById("State").value,
+        ZipCode: document.getElementById("ZipCode").value,
+        PhoneNumber: document.getElementById("PhoneNumber").value,
+        OtherPeople: document.getElementById("OtherPeople").value,
+        HolidayCard: document.getElementById("HolidayCard").value
+      };
+
+      try {
+        const res = await fetch('/api/AddressBookAddEntry', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newEntry)
+        });
+
+        if (!res.ok) {
+          status.textContent = "Failed to add entry.";
+          return;
+        }
+
+        const created = await res.json();
+
+        if (!created.id) {
+          status.textContent = "Entry added, but no ID returned.";
+          return;
+        }
+
+        status.textContent = "Entry added successfully. Redirecting…";
+
+        // Jump to edit page for the new entry
+        setTimeout(() => {
+          window.location.href = `edit.html?id=${encodeURIComponent(created.id)}`;
+        }, 600);
+
+      } catch (err) {
+        console.error(err);
+        status.textContent = "Error adding entry.";
+      }
+    }
+
+    document.getElementById('addBtn').onclick = addEntry;
+
+    // -------------------------
+    // INIT
+    // -------------------------
+    (async function init() {
+      const authed = await checkAuth();
+      if (!authed) return;
+
+      document.getElementById('pageTitle').style.display = 'block';
+      document.getElementById('addForm').style.display = 'block';
+    })();
+  </script>
+
+</body>
+</html>
