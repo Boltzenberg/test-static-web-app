@@ -23,16 +23,16 @@
 </head>
 <body>
 
-  <div id="authContainer"></div>
-
   <h2 id="pageTitle" style="display:none;">Select an Address Book Entry</h2>
 
   <select id="addressDropdown" style="display:none;">
     <option value="">Loading...</option>
   </select>
 
-  <div id="status"></div>
   <div id="addressDisplay"></div>
+
+  <div id="status"></div>
+  <div id="authContainer"></div>
 
   <script>
     let addressEntries = [];
@@ -52,7 +52,8 @@
             <button id="signInBtn">Sign in with Microsoft</button>
           `;
           document.getElementById('signInBtn').onclick = () => {
-            window.location.href = '/.auth/login/aad';
+            const returnUrl = encodeURIComponent(window.location.pathname);
+            window.location.href = '/.auth/login/aad?post_login_redirect_uri=' + returnUrl;
           };
           return false;
         }
@@ -62,7 +63,8 @@
           <button id="signOutBtn">Sign out</button>
         `;
         document.getElementById('signOutBtn').onclick = () => {
-          window.location.href = '/.auth/logout';
+          const returnUrl = encodeURIComponent(window.location.pathname);
+          window.location.href = '/.auth/logout?post_logout_redirect_uri=' + returnUrl;
         };
 
         return true;
@@ -102,7 +104,12 @@
           dropdown.appendChild(option);
         });
 
-        status.textContent = `Loaded ${addressEntries.length} entries`;
+        // Clear the status field and show the first entry
+        status.textContent = "";
+        if (addressEntries.length > 0) {
+          dropdown.value = addressEntries[0].id;
+          showAddress(addressEntries[0]);
+        }
       }
       catch (err) {
         status.textContent = "Failed to load address book entries.";
@@ -129,6 +136,7 @@
       ].filter(x => x);
 
       div.innerHTML = lines.join("<br>");
+      dif.innerHTML += `<br><a href="/edit.html?id=${encodeURIComponent(entry.id)}">Edit this entry</a>`
     }
 
     document.getElementById('addressDropdown').addEventListener('change', (e) => {
