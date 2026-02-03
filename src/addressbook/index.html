@@ -136,7 +136,7 @@
       ].filter(x => x);
 
       div.innerHTML = lines.join("<br>");
-      dif.innerHTML += `<br><a href="/edit.html?id=${encodeURIComponent(entry.id)}">Edit this entry</a>`
+      div.innerHTML += `<br><a href="/edit.html?id=${encodeURIComponent(entry.id)}">Edit this entry</a>`
     }
 
     document.getElementById('addressDropdown').addEventListener('change', (e) => {
