@@ -31,10 +31,12 @@
 
   <div id="addressDisplay" style="min-height: 130px;"></div>
   <div id="linksDiv" style="margin-top: 20px;"></div>
-  <div id="exportDiv">
-    <button onclick="exportHolidayCardCsv()">Export Holiday Card List</button>
+  <div id="holidayListAnchorsDiv">
+    <a href="#" onclick="displayHolidayCardCsv(); return false;">View Holiday Card List</a><br>
+    <a href="#" onclick="exportHolidayCardCsv(); return false;">Export Holiday Card List as Mail Merge</a>
   </div>
 
+  <div id="holidayCardDiv"></div>
   <div id="status"></div>
   <div id="authContainer"></div>
 
@@ -210,6 +212,57 @@
       a.click();
 
       URL.revokeObjectURL(url);
+    }
+
+    function displayHolidayCardPreview() {
+      const container = document.getElementById("holidayCardDiv");
+      container.innerHTML = ""; // clear previous content
+
+      // Filter entries with HolidayCard values
+      const filtered = addressEntries.filter(e =>
+        e.HolidayCard !== null &&
+        e.HolidayCard !== undefined &&
+        e.HolidayCard !== ""
+      );
+
+      if (filtered.length === 0) {
+        container.textContent = "No holiday card entries found.";
+        return;
+      }
+
+      // Group by HolidayCard value
+      const groups = {};
+      for (const e of filtered) {
+        const key = e.HolidayCard;
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(e);
+      }
+
+      // Render each group
+      for (const value of Object.keys(groups).sort()) {
+        const groupDiv = document.createElement("div");
+        groupDiv.style.marginBottom = "1.5rem";
+
+        const header = document.createElement("h3");
+        header.textContent = value;
+        groupDiv.appendChild(header);
+
+        const list = document.createElement("ul");
+
+        for (const entry of groups[value]) {
+          const li = document.createElement("li");
+
+          const link = document.createElement("a");
+          link.href = `edit.html?id=${entry.id}`;
+          link.textContent = entry.MailingName || "(Unnamed Entry)";
+
+          li.appendChild(link);
+          list.appendChild(li);
+        }
+
+        groupDiv.appendChild(list);
+        container.appendChild(groupDiv);
+      }
     }
 
     document.getElementById('addressDropdown').addEventListener('change', (e) => {
