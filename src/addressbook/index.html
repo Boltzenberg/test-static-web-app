@@ -31,6 +31,9 @@
 
   <div id="addressDisplay" style="min-height: 130px;"></div>
   <div id="linksDiv" style="margin-top: 20px;"></div>
+  <div id="exportDiv">
+    <button onclick="exportHolidayCardCsv()">Export Holiday Card List</button>
+  </div>
 
   <div id="status"></div>
   <div id="authContainer"></div>
@@ -160,6 +163,53 @@
         `<a href="${googleMapsUrl(entry)}">Map it!</a>`
       ];
       linksDiv.innerHTML = linksLines.join("<br>");
+    }
+
+    function exportHolidayCardCsv() {
+      // 1. Filter entries with HolidayCard values
+      const filtered = addressEntries.filter(e =>
+        e.HolidayCard !== null &&
+        e.HolidayCard !== undefined &&
+        e.HolidayCard !== ""
+      );
+
+      // 2. Build CSV header
+      const rows = [
+        ["MailingName", "Street", "Apartment", "City", "State", "ZipCode"]
+      ];
+
+      // 3. Add rows
+      for (const e of filtered) {
+        rows.push([
+          e.MailingName || "",
+          e.Street || "",
+          e.Apartment || "",
+          e.City || "",
+          e.State || "",
+          e.ZipCode || ""
+        ]);
+      }
+
+      // 4. Convert to CSV with proper escaping
+      const csv = rows
+        .map(r => r.map(v => {
+          if (v.includes(",") || v.includes("\"")) {
+            return `"${v.replace(/"/g, '""')}"`;
+          }
+          return v;
+        }).join(","))
+        .join("\n");
+
+      // 5. Trigger download
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "HolidayCardExport.csv";
+      a.click();
+
+      URL.revokeObjectURL(url);
     }
 
     document.getElementById('addressDropdown').addEventListener('change', (e) => {
