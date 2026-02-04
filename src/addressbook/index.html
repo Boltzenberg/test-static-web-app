@@ -127,6 +127,13 @@
       }
     }
 
+    function googleMapsUrl(entry) {
+      const address = `${entry.Street} ${entry.City}, ${entry.State} ${entry.ZipCode}`;
+      const encoded = encodeURIComponent(address);
+      return `https://www.google.com/maps/search/?api=1&query=${encoded}`;
+    }
+
+
     function showAddress(entry) {
       const addressDisplayDiv = document.getElementById('addressDisplay');
       const linksDiv = document.getElementById('linksDiv');
@@ -149,7 +156,8 @@
 
       const linksLines = [
         `<a href="edit.html?id=${encodeURIComponent(entry.id)}">Edit this entry</a>`,
-        `<a href="add.html">Add new entry</a>`
+        `<a href="add.html">Add new entry</a>`,
+        `<a href="${googleMapsUrl(entry)}">Map it!</a>`
       ];
       linksDiv.innerHTML = linksLines.join("<br>");
     }
