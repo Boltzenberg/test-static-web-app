@@ -29,7 +29,7 @@
     <option value="">Loading...</option>
   </select>
 
-  <div id="addressDisplay" style="min-height: 110px;"></div>
+  <div id="addressDisplay" style="min-height: 130px;"></div>
   <div id="linksDiv" style="margin-top: 20px;"></div>
 
   <div id="status"></div>
@@ -141,7 +141,8 @@
         entry.Street,
         entry.Apartment,
         `${entry.City ?? ''}, ${entry.State ?? ''} ${entry.ZipCode ?? ''}`.trim(),
-        entry.PhoneNumber
+        `Phone Number: ${entry.PhoneNumber}`,
+        `Holiday Card: ${entry.HolidayCard}`
       ].filter(x => x);
 
       addressDisplayDiv.innerHTML = addressLines.join("<br>");
