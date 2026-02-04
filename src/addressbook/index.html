@@ -93,15 +93,23 @@
         if (!response.ok) throw new Error(`API returned ${response.status}`);
 
         addressEntries = await response.json();
+        addressEntries.sort((a, b) => {
+          const lastA = (a.LastName || "").toLowerCase();
+          const lastB = (b.LastName || "").toLowerCase();
+          const cmp = lastA.localeCompare(lastB);
+          if (cmp !== 0) return cmp;
+
+          const firstA = (a.FirstName || "").toLowerCase();
+          const firstB = (b.FirstName || "").toLowerCase();
+          return firstA.localeCompare(firstB);
+        });
 
         dropdown.innerHTML = "";
 
         addressEntries.forEach(entry => {
           const option = document.createElement('option');
 
-          const displayName =
-            entry.MailingName ||
-            `${entry.FirstName ?? ''} ${entry.LastName ?? ''}`.trim() ||
+          const displayName = `${entry.LastName ?? ''} ${entry.FirstName ?? ''}`.trim() ||
             "(Unnamed Entry)";
 
           option.value = entry.id;
