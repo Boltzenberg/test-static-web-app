@@ -109,7 +109,7 @@
         addressEntries.forEach(entry => {
           const option = document.createElement('option');
 
-          const displayName = `${entry.LastName ?? ''} ${entry.FirstName ?? ''}`.trim() ||
+          const displayName = `${entry.LastName ?? ''}, ${entry.FirstName ?? ''}`.trim() ||
             "(Unnamed Entry)";
 
           option.value = entry.id;
@@ -233,44 +233,35 @@
         e.HolidayCard !== ""
       );
 
-      if (filtered.length === 0) {
-        container.textContent = "No holiday card entries found.";
+      const total = filtered.length;
+
+      // Heading
+      const header = document.createElement("h3");
+      header.textContent = `Holiday Cards (${total})`;
+      container.appendChild(header);
+
+      if (total === 0) {
+        const empty = document.createElement("p");
+        empty.textContent = "No holiday card entries found.";
+        container.appendChild(empty);
         return;
       }
 
-      // Group by HolidayCard value
-      const groups = {};
-      for (const e of filtered) {
-        const key = e.HolidayCard;
-        if (!groups[key]) groups[key] = [];
-        groups[key].push(e);
+      // List of entries
+      const list = document.createElement("ul");
+
+      for (const entry of filtered) {
+        const li = document.createElement("li");
+
+        const link = document.createElement("a");
+        link.href = `edit.html?id=${entry.id}`;
+        link.textContent = entry.MailingName || "(Unnamed Entry)";
+
+        li.appendChild(link);
+        list.appendChild(li);
       }
 
-      // Render each group
-      for (const value of Object.keys(groups).sort()) {
-        const groupDiv = document.createElement("div");
-        groupDiv.style.marginBottom = "1.5rem";
-
-        const header = document.createElement("h3");
-        header.textContent = value;
-        groupDiv.appendChild(header);
-
-        const list = document.createElement("ul");
-
-        for (const entry of groups[value]) {
-          const li = document.createElement("li");
-
-          const link = document.createElement("a");
-          link.href = `edit.html?id=${entry.id}`;
-          link.textContent = entry.MailingName || "(Unnamed Entry)";
-
-          li.appendChild(link);
-          list.appendChild(li);
-        }
-
-        groupDiv.appendChild(list);
-        container.appendChild(groupDiv);
-      }
+      container.appendChild(list);
     }
 
     document.getElementById('addressDropdown').addEventListener('change', (e) => {
