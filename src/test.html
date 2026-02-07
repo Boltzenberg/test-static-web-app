@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="styles.css">
+  <title>Vanilla JavaScript App</title>
+</head>
+
+<body>
+  <form id="gForm">
+    <h1>Vanilla JavaScript App</h1>
+    <a href="/.auth/login/aad">Login with Microsoft Entra ID</a><br>
+    <a href="/.auth/logout">Logout</a><br>
+    <button type="button" onclick="checkAuth()">Check Current Auth Locally</button><br>
+    <button type="button" onclick="checkAuthInFunction()">Check Current Auth In Azure Function</button><br>
+    <div id="results"></div>
+  </form>
+
+  <script>
+    function checkAuth() {
+      const msgdiv = document.getElementById('results');
+      msgdiv.innerText = "Checking auth...";
+      fetch('/.auth/me')
+        .then(response => response.json())
+        .then(data => msgdiv.innerText = JSON.stringify(data))
+        .catch(error => msgdiv.innerText = error);
+      alert("done!");
+    }
+
+    function checkAuthInFunction() {
+      const msgdiv = document.getElementById('results');
+      msgdiv.innerText = "Checking auth...";
+      fetch('/api/ReadAddressBook')
+        .then(async response => {
+          const status = response.status;
+          const body = await response.text();
+          msgdiv.innerText = `${status}: ${body}`;
+        })
+        .catch(error => msgdiv.innerText = error);
+    }
+  </script>
+</body>
+
+</html>
