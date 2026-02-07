@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Danger Round Viewer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.5;
+        }
+        p {
+            cursor: pointer;
+            margin: 6px 0;
+        }
+        p:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Danger Round Viewer</h1>
+
+    <label for="dangerRoundSelector"><strong>Select a Danger Round:</strong></label>
+    <select id="dangerRoundSelector"></select>
+
+    <div id="dangerRoundContent" style="margin-top: 20px;"></div>
+
+    <script>
+        // -----------------------------
+        // Embedded Danger Round Data
+        // -----------------------------
+        const dangerRounds = [
+            {
+                name: "Jon, T, Gavin Eagles Trip 2",
+                songs: [
+                    { label: "Show Song and Artist for Song 1", reveal: "What's Up: 4 Non-Blondes" },
+                    { label: "Show Song and Artist for Song 2", reveal: "Down: Jay Sean" },
+                    { label: "Show Song and Artist for Song 3", reveal: "Run-Around: Blues Traveler" },
+                    { label: "Show Song and Artist for Song 4", reveal: "Desert Rose: Sting" },
+                    { label: "Show Song and Artist for Song 5", reveal: "Let Her Cry: Hootie and the Blowfish" },
+                    { label: "Show Song and Artist for Song 6", reveal: "Say Goodbye: Dave Matthews Band" },
+                    { label: "Show Song and Artist for Song 7", reveal: "Terrible Lie: Nine Inch Nails" },
+                    { label: "Show Song and Artist for Song 8", reveal: "Hurt: Johnny Cash" }
+                ],
+                hints: [
+                    { label: "Show Danger Round Hint 1", reveal: "Lyrics aren't important" },
+                    { label: "Show Danger Round Hint 2", reveal: "Artists aren't important" },
+                    { label: "Show Danger Round Hint 3", reveal: "Song order matters" },
+                    { label: "Show Danger Round Hint 4", reveal: "Song titles contain key words or phrases" }
+                ],
+                answer: {
+                    label: "Show the Answer for the Danger Round",
+                    reveal: "Rickroll"
+                },
+                explanation: {
+                    label: "Show the Explanation",
+                    reveal: `
+                        <table border="1" cellpadding="4">
+                            <tr><th>Lyric</th><th>Song Title</th></tr>
+                            <tr><td>Give you up</td><td>What's <b>Up</b></td></tr>
+                            <tr><td>Let you down</td><td><b>Down</b></td></tr>
+                            <tr><td>Run around</td><td><b>Run-Around</b></td></tr>
+                            <tr><td>Desert you</td><td><b>Desert</b> Rose</td></tr>
+                            <tr><td>Make you cry</td><td>Let Her <b>Cry</b></td></tr>
+                            <tr><td>Say goodbye</td><td><b>Say Goodbye</b></td></tr>
+                            <tr><td>Tell a lie</td><td>Terrible <b>Lie</b></td></tr>
+                            <tr><td>Hurt you</td><td><b>Hurt</b></td></tr>
+                        </table>
+                    `
+                }
+            },
+
+            {
+                name: "Gavin, Michael, Alison Denver Trip",
+                songs: [
+                    { label: "Show Song and Artist for Song 1", reveal: "Red Red Wine: UB40" },
+                    { label: "Show Song and Artist for Song 2", reveal: "Rock of Ages: Def Leppard" },
+                    { label: "Show Song and Artist for Song 3", reveal: "99 Red Balloons: Goldfinger" },
+                    { label: "Show Song and Artist for Song 4", reveal: "Cherub Rock: Smashing Pumpkins" },
+                    { label: "Show Song and Artist for Song 5", reveal: "Dani California: Red Hot Chili Peppers" },
+                    { label: "Show Song and Artist for Song 6", reveal: "Rock You Like a Hurricane: Scorpions" },
+                    { label: "Show Song and Artist for Song 7", reveal: "Red: Taylor Swift" },
+                    { label: "Show Song and Artist for Song 8", reveal: "We Will Rock You: Queen" },
+                    { label: "Show Song and Artist for Song 9", reveal: "Red Hill Mining Town: U2" },
+                    { label: "Show Song and Artist for Song 10", reveal: "I Love Rock and Roll: Joan Jett" },
+                    { label: "Show Song and Artist for Song 11", reveal: "Little Red Corvette: Prince" },
+                    { label: "Show Song and Artist for Song 12", reveal: "I Want to Rock and Roll All Night: KISS" },
+                    { label: "Show Song and Artist for Song 13", reveal: "Red Rain: Peter Gabriel" },
+                    { label: "Show Song and Artist for Song 14", reveal: "Rockstar: Nickelback" }
+                ],
+                hints: [
+                    { label: "Show Danger Round Hint 1", reveal: "Lyrics aren't important" },
+                    { label: "Show Danger Round Hint 2", reveal: "Title or Artist is important" },
+                    { label: "Show Danger Round Hint 3", reveal: "Songs are grouped" },
+                    { label: "Show Danger Round Hint 4", reveal: "Songs are in groups of 2" },
+                    { label: "Show Danger Round Hint 5", reveal: "Look for common words across the groups" },
+                    { label: "Show Danger Round Hint 6", reveal: "Where are you going to see the concert on this trip?" }
+                ],
+                answer: {
+                    label: "Show the Answer for the Danger Round",
+                    reveal: "Red Rocks"
+                },
+                explanation: {
+                    label: "Show the Explanation",
+                    reveal: `
+                        <table border="1" cellpadding="4">
+                            <tr><th>Red in title or artist</th><th>Rock in title or artist</th></tr>
+                            <tr><td>UB40 - <b>Red</b> Red Wine</td><td>Def Leppard - <b>Rock</b> of Ages</td></tr>
+                            <tr><td>Goldfinger - 99 <b>Red</b> Balloons</td><td>Smashing Pumpkins - Cherub <b>Rock</b></td></tr>
+                            <tr><td><b>Red</b> Hot Chili Peppers - Dani California</td><td>Scorpions - <b>Rock</b> You Like a Hurricane</td></tr>
+                            <tr><td>Taylor Swift - <b>Red</b></td><td>Queen - We Will <b>Rock</b> You</td></tr>
+                            <tr><td>U2 - <b>Red</b> Hill Mining Town</td><td>Joan Jett - I Love <b>Rock</b> and Roll</td></tr>
+                            <tr><td>Prince - Little <b>Red</b> Corvette</td><td>KISS - I Want to <b>Rock</b> and Roll All Night</td></tr>
+                            <tr><td>Peter Gabriel - <b>Red</b> Rain</td><td>Nickelback - <b>Rock</b>star</td></tr>
+                        </table>
+                    `
+                }
+            }
+        ];
+
+        // -----------------------------
+        // Populate Dropdown
+        // -----------------------------
+        const selector = document.getElementById("dangerRoundSelector");
+        const content = document.getElementById("dangerRoundContent");
+
+        dangerRounds.forEach((round, i) => {
+            const opt = document.createElement("option");
+            opt.value = i;
+            opt.textContent = round.name;
+            selector.appendChild(opt);
+        });
+
+        selector.addEventListener("change", () => {
+            renderDangerRound(dangerRounds[selector.value]);
+        });
+
+        // -----------------------------
+        // Render Function
+        // -----------------------------
+        function renderDangerRound(round) {
+            content.innerHTML = "";
+
+            const title = document.createElement("h2");
+            title.textContent = round.name;
+            content.appendChild(title);
+
+            // Songs
+            if (round.songs?.length) {
+                const h = document.createElement("h3");
+                h.textContent = "Songs:";
+                content.appendChild(h);
+
+                round.songs.forEach(s => {
+                    const p = document.createElement("p");
+                    p.textContent = s.label;
+                    p.onclick = () => p.innerHTML = s.reveal;
+                    content.appendChild(p);
+                });
+            }
+
+            // Hints
+            if (round.hints?.length) {
+                const h = document.createElement("h3");
+                h.textContent = "Hints:";
+                content.appendChild(h);
+
+                round.hints.forEach(hObj => {
+                    const p = document.createElement("p");
+                    p.textContent = hObj.label;
+                    p.onclick = () => p.innerHTML = hObj.reveal;
+                    content.appendChild(p);
+                });
+            }
+
+            // Answer
+            if (round.answer) {
+                const h = document.createElement("h3");
+                h.textContent = "Answer:";
+                content.appendChild(h);
+
+                const p = document.createElement("p");
+                p.textContent = round.answer.label;
+                p.onclick = () => p.innerHTML = round.answer.reveal;
+                content.appendChild(p);
+            }
+
+            // Explanation
+            if (round.explanation) {
+                const h = document.createElement("h3");
+                h.textContent = "Explanation:";
+                content.appendChild(h);
+
+                const p = document.createElement("p");
+                p.textContent = round.explanation.label;
+                p.onclick = () => p.innerHTML = round.explanation.reveal;
+                content.appendChild(p);
+            }
+        }
+
+        // Initial load
+        renderDangerRound(dangerRounds[0]);
+    </script>
+
+</body>
+</html>
