@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Secret Santa Config Editor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        body { font-family: Arial; margin: 20px; }
+        table { border-collapse: collapse; margin-bottom: 20px; }
+        th, td { border: 1px solid #ccc; padding: 6px 10px; }
+        th { background: #eee; }
+        button { margin: 5px 0; }
+        input[type=text] { width: 200px; }
+    </style>
+</head>
+<body>
+
+<h1>Secret Santa Admin</h1>
+
+<div id="authStatus"></div>
+
+<button onclick="loadConfig()">Load Config</button>
+<button onclick="saveConfig()">Save Config</button>
+
+<h2>People</h2>
+<table id="peopleTable">
+    <thead>
+        <tr><th>Name</th><th>Email</th><th>Remove</th></tr>
+    </thead>
+    <tbody></tbody>
+</table>
+<button onclick="addPerson()">Add Person</button>
+
+<h2>Restrictions</h2>
+<table id="restrictionsTable">
+    <thead>
+        <tr><th>Person 1 Email</th><th>Person 2 Email</th><th>Remove</th></tr>
+    </thead>
+    <tbody></tbody>
+</table>
+<button onclick="addRestriction()">Add Restriction</button>
+
+<script>
+    let config = null;
+
+    async function ensureAuthenticated() {
+        const resp = await fetch("/.auth/me");
+        const data = await resp.json();
+
+        if (!data || !data.clientPrincipal) {
+            window.location.href = "/.auth/login/aad";
+            return;
+        }
+
+        document.getElementById("authStatus").innerText =
+            "Signed in as: " + data.clientPrincipal.userDetails;
+    }
+
+    async function loadConfig() {
+        const response = await fetch("/api/SecretSantaAdminGetConfig");
+        config = await response.json();
+        renderPeople();
+        renderRestrictions();
+    }
+
+    function renderPeople() {
+        const tbody = document.querySelector("#peopleTable tbody");
+        tbody.innerHTML = "";
+
+        config.people.forEach((p, index) => {
+            const row = document.createElement("tr");
+
+            row.innerHTML = `
+                <td><input type="text" value="${p.name}" onchange="config.people[${index}].name = this.value"></td>
+                <td><input type="text" value="${p.email}" onchange="config.people[${index}].email = this.value"></td>
+                <td><button onclick="removePerson(${index})">X</button></td>
+            `;
+
+            tbody.appendChild(row);
+        });
+    }
+
+    function renderRestrictions() {
+        const tbody = document.querySelector("#restrictionsTable tbody");
+        tbody.innerHTML = "";
+
+        config.restrictions.forEach((r, index) => {
+            const row = document.createElement("tr");
+
+            row.innerHTML = `
+                <td><input type="text" value="${r.person1Email}" onchange="config.restrictions[${index}].person1Email = this.value"></td>
+                <td><input type="text" value="${r.person2Email}" onchange="config.restrictions[${index}].person2Email = this.value"></td>
+                <td><button onclick="removeRestriction(${index})">X</button></td>
+            `;
+
+            tbody.appendChild(row);
+        });
+    }
+
+    function addPerson() {
+        config.people.push({ name: "", email: "" });
+        renderPeople();
+    }
+
+    function removePerson(index) {
+        config.people.splice(index, 1);
+        renderPeople();
+    }
+
+    function addRestriction() {
+        config.restrictions.push({ person1Email: "", person2Email: "" });
+        renderRestrictions();
+    }
+
+    function removeRestriction(index) {
+        config.restrictions.splice(index, 1);
+        renderRestrictions();
+    }
+
+    async function saveConfig() {
+        const response = await fetch("/api/SecretSantaAdminUpdateConfig", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(config)
+        });
+
+        if (response.ok) {
+            alert("Config saved!");
+        } else {
+            alert("Error saving config");
+        }
+    }
+
+    ensureAuthenticated();
+</script>
+
+</body>
+</html>

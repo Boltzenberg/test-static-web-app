@@ -41,13 +41,7 @@ namespace Boltzenberg.Functions.DataModels.Auth
             return JsonSerializer.Deserialize<ClientPrincipal>(json);
         }
 
-        private static HashSet<string> AddressBookAuthorizedUsers = new HashSet<string>()
-        {
-            "jon_rosenberg@hotmail.com",
-            "treester@hotmail.com"
-        };
-
-        public bool IsAuthorizedForAddressBook()
+        private bool IsAuthorizedFor(HashSet<string> authorizedUsers)
         {
             if (this.UserDetails == null)
             {
@@ -56,7 +50,28 @@ namespace Boltzenberg.Functions.DataModels.Auth
 
 
             string user = this.UserDetails.ToLowerInvariant();
-            return AddressBookAuthorizedUsers.Contains(user);
+            return authorizedUsers.Contains(user);
+        }
+
+        private static HashSet<string> AddressBookAuthorizedUsers = new HashSet<string>()
+        {
+            "jon_rosenberg@hotmail.com",
+            "treester@hotmail.com"
+        };
+
+        public bool IsAuthorizedForAddressBook()
+        {
+            return IsAuthorizedFor(AddressBookAuthorizedUsers);
+        }
+
+        private static HashSet<string> SecretSantaAdminAuthorizedUsers = new HashSet<string>()
+        {
+            "jon_rosenberg@hotmail.com",
+        };
+
+        public bool IsAuthorizedForSecretSantaAdmin()
+        {
+            return IsAuthorizedFor(SecretSantaAdminAuthorizedUsers);
         }
     }
 }

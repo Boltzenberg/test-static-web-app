@@ -1,11 +1,9 @@
 using System.Net;
 using System.Text.Json;
-using System.Threading.Tasks;
 using Boltzenberg.Functions.DataModels.AddressBook;
 using Boltzenberg.Functions.DataModels.Auth;
 using Boltzenberg.Functions.Storage;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
