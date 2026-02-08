@@ -355,21 +355,22 @@
     }
 
     async function startEvent() {
-      if (!selectedEvent) return;
+        if (!selectedEvent) return;
 
-      const response = await fetch("/api/SecretSantaAdminStartEvent", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: selectedEvent.id })
-      });
+        // Send the full event JSON to the StartEvent API
+        const response = await fetch("/api/SecretSantaAdminStartEvent", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(selectedEvent)
+        });
 
-      if (response.ok) {
-        alert("Event started! Assignments generated.");
-        await loadEvents();
-        showEventEditor(events.find(e => e.id === selectedEvent.id));
-      } else {
-        alert("Error starting event");
-      }
+        if (response.ok) {
+            alert("Event started! Assignments generated.");
+            await loadEvents();
+            showEventEditor(events.find(e => e.id === selectedEvent.id));
+        } else {
+            alert("Error starting event");
+        }
     }
 
     function showCreateEvent() {
@@ -405,10 +406,24 @@
             return;
         }
 
+        // Look for previous year's event
+        const previous = events.find(e => e.GroupName === groupName && e.Year === year - 1);
+
+        let participants = [];
+
+        if (previous) {
+            // Copy participants but remove SantaForEmail
+            participants = previous.Participants.map(p => ({
+            Email: p.Email,
+            SantaForEmail: null
+            }));
+        }
+
         const newEvent = {
             id: id,
             GroupName: groupName,
-            Year: year
+            Year: year,
+            Participants: participants
         };
 
         const response = await fetch("/api/SecretSantaAdminCreateEvent", {
