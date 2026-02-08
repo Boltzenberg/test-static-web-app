@@ -109,8 +109,8 @@
         const row = document.createElement("tr");
 
         row.innerHTML = `
-          <td><input type="text" value="${p.name}" onchange="config.People[${index}].name = this.value"></td>
-          <td><input type="text" value="${p.email}" onchange="config.People[${index}].email = this.value"></td>
+          <td><input type="text" value="${p.name}" onchange="config.People[${index}].Name = this.value"></td>
+          <td><input type="text" value="${p.email}" onchange="config.People[${index}].Email = this.value"></td>
           <td><button onclick="removePerson(${index})">X</button></td>
         `;
 
@@ -126,8 +126,8 @@
         const row = document.createElement("tr");
 
         row.innerHTML = `
-          <td><input type="text" value="${r.person1Email}" onchange="config.Restrictions[${index}].person1Email = this.value"></td>
-          <td><input type="text" value="${r.person2Email}" onchange="config.Restrictions[${index}].person2Email = this.value"></td>
+          <td><input type="text" value="${r.person1Email}" onchange="config.Restrictions[${index}].Person1Email = this.value"></td>
+          <td><input type="text" value="${r.person2Email}" onchange="config.Restrictions[${index}].Person2Email = this.value"></td>
           <td><button onclick="removeRestriction(${index})">X</button></td>
         `;
 
@@ -136,7 +136,7 @@
     }
 
     function addPerson() {
-      config.People.push({ name: "", email: "" });
+      config.People.push({ Name: "", Email: "" });
       renderPeople();
     }
 
@@ -146,7 +146,7 @@
     }
 
     function addRestriction() {
-      config.Restrictions.push({ person1Email: "", person2Email: "" });
+      config.Restrictions.push({ Person1Email: "", Person2Email: "" });
       renderRestrictions();
     }
 
