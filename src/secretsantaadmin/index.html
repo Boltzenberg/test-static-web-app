@@ -310,7 +310,7 @@
 
           const link = document.createElement("a");
           link.href = "";
-          link.textContent = p.Email;
+          link.textContent = `${p.Name} (${p.Email})`;
           link.style.cursor = "pointer";
           link.style.display = "inline-block";
 
@@ -368,6 +368,7 @@
 
         if (checkbox && checkbox.checked) {
           updatedParticipants.push({
+            Name: person.Name,
             Email: person.Email,
             SantaForEmail: null
           });
@@ -453,6 +454,7 @@
 
       if (previous) {
         participants = previous.Participants.map(p => ({
+          Name: p.Name,
           Email: p.Email,
           SantaForEmail: null
         }));
