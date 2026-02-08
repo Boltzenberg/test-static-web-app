@@ -18,7 +18,7 @@
       margin-right: 10px;
     }
     button:hover { background: #004f9e; }
-    input[type=text] { width: 200px; }
+    input[type=text], input[type=number] { width: 200px; }
     #authContainer { margin-top: 20px; }
     #eventEditor { border: 1px solid #ccc; padding: 15px; border-radius: 6px; }
   </style>
@@ -59,31 +59,31 @@
     <!-- EVENTS SECTION -->
     <h2>Events</h2>
 
-    <button onclick="showCreateEvent()">Create New Event</button>
+    <button onclick="showCreateEventPanel()">Create New Event</button>
 
     <div id="createEventPanel" style="display:none; margin-top:15px; border:1px solid #ccc; padding:10px; border-radius:6px;">
-    <h3>Create New Event</h3>
+      <h3>Create New Event</h3>
 
-    <label>
+      <label>
         Event Name (id):
         <input type="text" id="newEventId" placeholder="e.g., Family-2026" />
-    </label>
-    <br><br>
+      </label>
+      <br><br>
 
-    <label>
+      <label>
         Group Name:
         <input type="text" id="newEventGroupName" placeholder="e.g., Family" />
-    </label>
-    <br><br>
+      </label>
+      <br><br>
 
-    <label>
+      <label>
         Year:
         <input type="number" id="newEventYear" />
-    </label>
-    <br><br>
+      </label>
+      <br><br>
 
-    <button onclick="createNewEvent()">Create Event</button>
-    <button onclick="cancelCreateEvent()">Cancel</button>
+      <button onclick="createNewEvent()">Create Event</button>
+      <button onclick="cancelCreateEventPanel()">Cancel</button>
     </div>
 
     <div id="eventsList"></div>
@@ -238,36 +238,36 @@
     }
 
     function renderEventsList() {
-        const div = document.getElementById("eventsList");
-        div.innerHTML = "";
+      const div = document.getElementById("eventsList");
+      div.innerHTML = "";
 
-        // Group events by GroupName
-        const groups = {};
-        events.forEach(evt => {
-            if (!groups[evt.GroupName]) groups[evt.GroupName] = [];
-            groups[evt.GroupName].push(evt);
+      const groups = {};
+      events.forEach(evt => {
+        if (!groups[evt.GroupName]) groups[evt.GroupName] = [];
+        groups[evt.GroupName].push(evt);
+      });
+
+      const groupNames = Object.keys(groups).sort();
+
+      groupNames.forEach(groupName => {
+        const header = document.createElement("h3");
+        header.textContent = groupName;
+        div.appendChild(header);
+
+        const sorted = groups[groupName].sort((a, b) => b.Year - a.Year);
+
+        sorted.forEach(evt => {
+          const a = document.createElement("a");
+          a.href = "";
+          a.textContent = `${evt.Year} (${evt.id})`;
+          a.style.display = "block";
+          a.onclick = (e) => {
+            e.preventDefault();
+            showEventEditor(evt);
+          };
+          div.appendChild(a);
         });
-
-        // Sort groups alphabetically
-        const groupNames = Object.keys(groups).sort();
-
-        groupNames.forEach(groupName => {
-            const header = document.createElement("h3");
-            header.textContent = groupName;
-            div.appendChild(header);
-
-            // Sort events by Year descending
-            const sorted = groups[groupName].sort((a, b) => b.Year - a.Year);
-
-            sorted.forEach(evt => {
-            const a = document.createElement("a");
-            a.href = "#";
-            a.textContent = `${evt.Year} (${evt.id})`;
-            a.style.display = "block";
-            a.onclick = () => showEventEditor(evt);
-            div.appendChild(a);
-            });
-        });
+      });
     }
 
     function showEventEditor(evt) {
@@ -281,20 +281,61 @@
       const container = document.getElementById("eventPeopleCheckboxes");
       container.innerHTML = "";
 
-      const isRunning = evt.IsRunning;
+      if (evt.IsRunning) {
 
-      if (isRunning) {
+        // Reveal All / Hide All toggle
+        const toggle = document.createElement("button");
+        toggle.textContent = "Reveal All";
+        toggle.style.marginBottom = "10px";
+
+        toggle.onclick = () => {
+          const all = container.querySelectorAll(".assignmentReveal");
+          const shouldShow = toggle.textContent === "Reveal All";
+
+          all.forEach(div => {
+            div.style.display = shouldShow ? "block" : "none";
+          });
+
+          toggle.textContent = shouldShow ? "Hide All" : "Reveal All";
+        };
+
+        container.appendChild(toggle);
+
+        // Participant list with click‑to‑reveal
         evt.Participants.forEach(p => {
           const santa = p.SantaForEmail ?? "(unassigned)";
-          const div = document.createElement("div");
-          div.textContent = `${p.Email} → ${santa}`;
-          container.appendChild(div);
+
+          const wrapper = document.createElement("div");
+          wrapper.style.marginBottom = "6px";
+
+          const link = document.createElement("a");
+          link.href = "";
+          link.textContent = p.Email;
+          link.style.cursor = "pointer";
+          link.style.display = "inline-block";
+
+          const reveal = document.createElement("div");
+          reveal.textContent = `Santa For: ${santa}`;
+          reveal.className = "assignmentReveal";
+          reveal.style.marginLeft = "15px";
+          reveal.style.display = "none";
+          reveal.style.fontStyle = "italic";
+
+          link.onclick = (e) => {
+            e.preventDefault();
+            reveal.style.display = reveal.style.display === "none" ? "block" : "none";
+          };
+
+          wrapper.appendChild(link);
+          wrapper.appendChild(reveal);
+          container.appendChild(wrapper);
         });
 
         document.getElementById("saveEventBtn").style.display = "none";
         document.getElementById("startEventBtn").style.display = "none";
 
       } else {
+
         config.People.forEach(person => {
           const id = `chk_${person.Email.replace(/[^a-zA-Z0-9]/g, "_")}`;
           const isInEvent = evt.Participants.some(p => p.Email === person.Email);
@@ -355,98 +396,96 @@
     }
 
     async function startEvent() {
-        if (!selectedEvent) return;
+      if (!selectedEvent) return;
 
-        // Send the full event JSON to the StartEvent API
-        const response = await fetch("/api/SecretSantaAdminStartEvent", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(selectedEvent)
-        });
+      const response = await fetch("/api/SecretSantaAdminStartEvent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(selectedEvent)
+      });
 
-        if (response.ok) {
-            alert("Event started! Assignments generated.");
-            await loadEvents();
-            showEventEditor(events.find(e => e.id === selectedEvent.id));
-        } else {
-            alert("Error starting event");
-        }
+      if (response.ok) {
+        alert("Event started! Assignments generated.");
+        await loadEvents();
+        showEventEditor(events.find(e => e.id === selectedEvent.id));
+      } else {
+        alert("Error starting event");
+      }
     }
 
-    function showCreateEvent() {
-        document.getElementById("createEventPanel").style.display = "block";
-
-        // Default year = current year
-        const yearBox = document.getElementById("newEventYear");
-        yearBox.value = new Date().getFullYear();
+    // ---------------------------
+    // CREATE NEW EVENT
+    // ---------------------------
+    function showCreateEventPanel() {
+      document.getElementById("createEventPanel").style.display = "block";
+      document.getElementById("newEventYear").value = new Date().getFullYear();
     }
 
-    function cancelCreateEvent() {
-        document.getElementById("createEventPanel").style.display = "none";
-        document.getElementById("newEventId").value = "";
-        document.getElementById("newEventGroupName").value = "";
-        document.getElementById("newEventYear").value = "";
+    function cancelCreateEventPanel() {
+      document.getElementById("createEventPanel").style.display = "none";
+      document.getElementById("newEventId").value = "";
+      document.getElementById("newEventGroupName").value = "";
+      document.getElementById("newEventYear").value = "";
     }
 
     async function createNewEvent() {
-        const id = document.getElementById("newEventId").value.trim();
-        const groupName = document.getElementById("newEventGroupName").value.trim();
-        const year = parseInt(document.getElementById("newEventYear").value);
+      const id = document.getElementById("newEventId").value.trim();
+      const groupName = document.getElementById("newEventGroupName").value.trim();
+      const year = parseInt(document.getElementById("newEventYear").value);
 
-        if (!id) {
-            alert("Event Name (id) is required.");
-            return;
-        }
-        if (!groupName) {
-            alert("Group Name is required.");
-            return;
-        }
-        if (!year || year < 1900 || year > 3000) {
-            alert("Please enter a valid year.");
-            return;
-        }
+      if (!id) {
+        alert("Event Name (id) is required.");
+        return;
+      }
+      if (!groupName) {
+        alert("Group Name is required.");
+        return;
+      }
+      if (!year || year < 1900 || year > 3000) {
+        alert("Please enter a valid year.");
+        return;
+      }
 
-        // Look for previous year's event
-        const previous = events.find(e => e.GroupName === groupName && e.Year === year - 1);
+      // Look for previous year's event
+      const previous = events.find(e => e.GroupName === groupName && e.Year === year - 1);
 
-        let participants = [];
+      let participants = [];
 
-        if (previous) {
-            // Copy participants but remove SantaForEmail
-            participants = previous.Participants.map(p => ({
-            Email: p.Email,
-            SantaForEmail: null
-            }));
-        }
+      if (previous) {
+        participants = previous.Participants.map(p => ({
+          Email: p.Email,
+          SantaForEmail: null
+        }));
+      }
 
-        const newEvent = {
-            id: id,
-            GroupName: groupName,
-            Year: year,
-            Participants: participants
-        };
+      const newEvent = {
+        id: id,
+        GroupName: groupName,
+        Year: year,
+        Participants: participants
+      };
 
-        const response = await fetch("/api/SecretSantaAdminCreateEvent", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(newEvent)
-        });
+      const response = await fetch("/api/SecretSantaAdminCreateEvent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newEvent)
+      });
 
-        if (!response.ok) {
-            alert("Error creating event");
-            return;
-        }
+      if (!response.ok) {
+        alert("Error creating event");
+        return;
+      }
 
-        alert("Event created!");
+      alert("Event created!");
 
-        await loadEvents();
+      await loadEvents();
 
-        const created = events.find(e => e.id === id);
-        if (created) {
-            showEventEditor(created);
-        }
+      const created = events.find(e => e.id === id);
+      if (created) {
+        showEventEditor(created);
+      }
 
-        cancelCreateEvent();
+      cancelCreateEventPanel();
     }
 
     // ---------------------------
