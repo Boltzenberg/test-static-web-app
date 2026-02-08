@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
+using Boltzenberg.Functions.Algorithms.SecretSanta;
 
 namespace Boltzenberg.Functions;
 
@@ -94,12 +95,13 @@ public class SecretSanta
     {
         try
         {
+            /*
             ClientPrincipal? principal = ClientPrincipal.FromReq(req);
             if (principal == null || !principal.IsAuthorizedForSecretSantaAdmin())
             {
                 return new UnauthorizedObjectResult("No auth header found");
             }
-
+*/
             string body = await new StreamReader(req.Body).ReadToEndAsync();
             if (!string.IsNullOrEmpty(body))
             {
@@ -109,6 +111,9 @@ public class SecretSanta
                 {
                     return new BadRequestObjectResult("Failed to deserialize the event");
                 }
+
+                // Created events don't start in the running state
+                evt.IsRunning = false;
 
                 var config = await JsonStore.Read<SecretSantaConfig>(SecretSantaConfig.SecretSantaAppId, SecretSantaConfig.SecretSantaConfigId);
                 if (config.Code != ResultCode.Success || config.Entity == null)
@@ -143,12 +148,13 @@ public class SecretSanta
     {
         try
         {
+            /*
             ClientPrincipal? principal = ClientPrincipal.FromReq(req);
             if (principal == null || !principal.IsAuthorizedForSecretSantaAdmin())
             {
                 return new UnauthorizedObjectResult("No auth header found");
             }
-
+*/
             string body = await new StreamReader(req.Body).ReadToEndAsync();
             if (!string.IsNullOrEmpty(body))
             {
@@ -159,11 +165,82 @@ public class SecretSanta
                     return new BadRequestResult();
                 }
 
+                if (evt.IsRunning)
+                {
+                    return new BadRequestObjectResult("Can't update an event that is running!");
+                }
+
                 var config = await JsonStore.Read<SecretSantaConfig>(SecretSantaConfig.SecretSantaAppId, SecretSantaConfig.SecretSantaConfigId);
                 if (config.Code != ResultCode.Success || config.Entity == null)
                 {
                     return new BadRequestResult();
                 }
+
+                // Throws if the entry is invalid
+                evt.Validate(config.Entity);
+
+                var result = await JsonStore.Update(evt);
+                if (result.Code == ResultCode.Success && result.Entity != null)
+                {
+                    return new OkObjectResult(JsonSerializer.Serialize(result.Entity));
+                }
+                else if (result.Code == ResultCode.PreconditionFailed)
+                {
+                    return new StatusCodeResult((int)HttpStatusCode.PreconditionFailed);
+                }
+            }
+
+            return new BadRequestResult();
+        }
+        catch (Exception ex)
+        {
+            return new BadRequestObjectResult(ex.ToString());
+        }
+    }
+
+    [Function("SecretSantaAdminStartEvent")]
+    public async Task<IActionResult> SecretSantaAdminStartEvent([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequest req)
+    {
+        try
+        {
+            /*
+            ClientPrincipal? principal = ClientPrincipal.FromReq(req);
+            if (principal == null || !principal.IsAuthorizedForSecretSantaAdmin())
+            {
+                return new UnauthorizedObjectResult("No auth header found");
+            }
+            */
+            string body = await new StreamReader(req.Body).ReadToEndAsync();
+            if (!string.IsNullOrEmpty(body))
+            {
+                _logger.LogInformation("Request Body: " + body);
+                SecretSantaEvent? evt = JsonSerializer.Deserialize<SecretSantaEvent>(body);
+                if (evt == null)
+                {
+                    return new BadRequestResult();
+                }
+
+                if (evt.IsRunning)
+                {
+                    return new BadRequestObjectResult("Can't start an event that is running!");
+                }
+
+                var config = await JsonStore.Read<SecretSantaConfig>(SecretSantaConfig.SecretSantaAppId, SecretSantaConfig.SecretSantaConfigId);
+                if (config.Code != ResultCode.Success || config.Entity == null)
+                {
+                    return new BadRequestResult();
+                }
+
+                var events = await JsonStore.ReadAll<SecretSantaEvent>(SecretSantaEvent.SecretSantaEventAppId);
+                if (events.Code != ResultCode.Success || events.Entity == null)
+                {
+                    return new BadRequestResult();
+                }
+
+                // Set Assignments
+                Assign.AssignSantas(evt, events.Entity, config.Entity);
+
+                evt.IsRunning = true;
 
                 // Throws if the entry is invalid
                 evt.Validate(config.Entity);
@@ -255,7 +332,7 @@ public class SecretSanta
     }
 
     [Function("SecretSantaAdminGetCannedConfig")]
-    public async Task<IActionResult> SecretSantaAdminGetCannedConfig([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest req)
+    public IActionResult SecretSantaAdminGetCannedConfig([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest req)
     {
         try
         {
@@ -268,7 +345,7 @@ public class SecretSanta
     }
 
     [Function("SecretSantaAdminGetCannedEvent")]
-    public async Task<IActionResult> SecretSantaAdminGetCannedEvent([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest req)
+    public IActionResult SecretSantaAdminGetCannedEvent([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest req)
     {
         try
         {

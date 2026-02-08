@@ -6,6 +6,10 @@ namespace Boltzenberg.Functions.DataModels.SecretSanta
 
         public bool IsRunning { get; set; }
 
+        public string GroupName { get; set; } = default!;
+
+        public int Year { get; set; } = default!;
+
         public List<SecretSantaParticipant> Participants { get; set; } = new();
 
         public SecretSantaEvent()
@@ -27,28 +31,31 @@ namespace Boltzenberg.Functions.DataModels.SecretSanta
                     throw new InvalidDataException("Event references participant '" + participant.Email + "' but that email address isn't in the config!");
                 }
 
-                if (config.People.Find(p => p.Email == participant.SantaForEmail) == null)
+                if (this.IsRunning)
                 {
-                    throw new InvalidDataException("Event participant '" + participant.Email + "' is Santa for '" + participant.SantaForEmail + "' but that Santa for address isn't in the config!");
-                }
+                    if (config.People.Find(p => p.Email == participant.SantaForEmail) == null)
+                    {
+                        throw new InvalidDataException("Event participant '" + participant.Email + "' is Santa for '" + participant.SantaForEmail + "' but that Santa for address isn't in the config!");
+                    }
 
-                // Assignments don't validate restrictions
-                if (config.Restrictions.Find(r => (r.Person1Email == participant.Email && r.Person2Email == participant.SantaForEmail) ||
-                                                  (r.Person1Email == participant.SantaForEmail && r.Person2Email == participant.Email)) != null)
-                {
-                    throw new InvalidDataException("Event assigns '" + participant.Email + "' as santa for '" + participant.SantaForEmail + "' but that violates the restrictions!");
-                }
+                    // Assignments don't validate restrictions
+                    if (config.Restrictions.Find(r => (r.Person1Email == participant.Email && r.Person2Email == participant.SantaForEmail) ||
+                                                    (r.Person1Email == participant.SantaForEmail && r.Person2Email == participant.Email)) != null)
+                    {
+                        throw new InvalidDataException("Event assigns '" + participant.Email + "' as santa for '" + participant.SantaForEmail + "' but that violates the restrictions!");
+                    }
 
-                // All participants are someone else's assignment
-                if (this.Participants.Find(p => p.SantaForEmail == participant.Email) == null)
-                {
-                    throw new InvalidDataException("Event participant '" + participant.Email + "' doesn't have anybody assigned as their santa!");
-                }
+                    // All participants are someone else's assignment
+                    if (this.Participants.Find(p => p.SantaForEmail == participant.Email) == null)
+                    {
+                        throw new InvalidDataException("Event participant '" + participant.Email + "' doesn't have anybody assigned as their santa!");
+                    }
 
-                // You can't be your own santa
-                if (participant.Email == participant.SantaForEmail)
-                {
-                    throw new InvalidDataException("Event participant '" + participant.Email + "' is their own Santa!");
+                    // You can't be your own santa
+                    if (participant.Email == participant.SantaForEmail)
+                    {
+                        throw new InvalidDataException("Event participant '" + participant.Email + "' is their own Santa!");
+                    }
                 }
             }
         }
