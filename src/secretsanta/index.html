@@ -57,6 +57,11 @@
     let events = [];
     let selectedEvent = null;
 
+    function getQueryParam(name) {
+      const params = new URLSearchParams(window.location.search);
+      return params.get(name);
+    }
+
     // ---------------------------
     // LOAD RUNNING EVENTS
     // ---------------------------
@@ -76,6 +81,15 @@
         opt.textContent = evt.id;
         dropdown.appendChild(opt);
       });
+
+      // Auto-select event if provided in query string
+      const preselect = getQueryParam("event");
+      if (preselect) {
+        dropdown.value = preselect;
+
+        // Trigger the same logic as if the user selected it manually
+        dropdown.dispatchEvent(new Event("change"));
+      }
     }
 
     // ---------------------------
