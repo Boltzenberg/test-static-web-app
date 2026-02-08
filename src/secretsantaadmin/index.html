@@ -303,7 +303,7 @@
 
         // Participant list with click‑to‑reveal
         evt.Participants.forEach(p => {
-          const santa = p.SantaForEmail ?? "(unassigned)";
+          const santa = `${p.SantaForName} (${p.SantaForEmail})`;
 
           const wrapper = document.createElement("div");
           wrapper.style.marginBottom = "6px";
@@ -370,6 +370,7 @@
           updatedParticipants.push({
             Name: person.Name,
             Email: person.Email,
+            SantaForName: null,
             SantaForEmail: null
           });
         }
@@ -456,6 +457,7 @@
         participants = previous.Participants.map(p => ({
           Name: p.Name,
           Email: p.Email,
+          SantaForName: null,
           SantaForEmail: null
         }));
       }

@@ -65,10 +65,10 @@ namespace Boltzenberg.Functions.DataModels.SecretSanta
             SecretSantaEvent evt = new SecretSantaEvent();
             evt.id = "Secret Santa Canned Event";
             evt.IsRunning = false;
-            evt.Participants.Add(new SecretSantaParticipant() { Name = "Test1", Email = "test.person.1@gmail.com", SantaForEmail = "test.person.3@gmail.com" });
-            evt.Participants.Add(new SecretSantaParticipant() { Name = "Test2", Email = "test.person.2@gmail.com", SantaForEmail = "test.person.4@gmail.com" });
-            evt.Participants.Add(new SecretSantaParticipant() { Name = "Test3", Email = "test.person.3@gmail.com", SantaForEmail = "test.person.2@gmail.com" });
-            evt.Participants.Add(new SecretSantaParticipant() { Name = "Test4", Email = "test.person.4@gmail.com", SantaForEmail = "test.person.1@gmail.com" });
+            evt.Participants.Add(new SecretSantaParticipant() { Name = "Test1", Email = "test.person.1@gmail.com", SantaForName = "Test3", SantaForEmail = "test.person.3@gmail.com" });
+            evt.Participants.Add(new SecretSantaParticipant() { Name = "Test2", Email = "test.person.2@gmail.com", SantaForName = "Test4", SantaForEmail = "test.person.4@gmail.com" });
+            evt.Participants.Add(new SecretSantaParticipant() { Name = "Test3", Email = "test.person.3@gmail.com", SantaForName = "Test2", SantaForEmail = "test.person.2@gmail.com" });
+            evt.Participants.Add(new SecretSantaParticipant() { Name = "Test4", Email = "test.person.4@gmail.com", SantaForName = "Test1", SantaForEmail = "test.person.1@gmail.com" });
             return evt;
         }
     }
@@ -77,6 +77,7 @@ namespace Boltzenberg.Functions.DataModels.SecretSanta
     {
         public string Name { get; set; } = default!;
         public string Email { get; set; } = default!;
+        public string SantaForName { get; set; } = default!;
         public string SantaForEmail { get; set; } = default!;
     }
 }
