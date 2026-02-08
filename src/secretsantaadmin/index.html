@@ -95,11 +95,8 @@
     }
 
     async function loadConfig() {
-      alert("Loading config");
       const response = await fetch("/api/SecretSantaAdminGetConfig");
-      alert("Fetch done");
       config = await response.json();
-      alert(JSON.stringify(config));
       renderPeople();
       renderRestrictions();
     }
@@ -108,12 +105,12 @@
       const tbody = document.querySelector("#peopleTable tbody");
       tbody.innerHTML = "";
 
-      config.people.forEach((p, index) => {
+      config.People.forEach((p, index) => {
         const row = document.createElement("tr");
 
         row.innerHTML = `
-          <td><input type="text" value="${p.name}" onchange="config.people[${index}].name = this.value"></td>
-          <td><input type="text" value="${p.email}" onchange="config.people[${index}].email = this.value"></td>
+          <td><input type="text" value="${p.name}" onchange="config.People[${index}].name = this.value"></td>
+          <td><input type="text" value="${p.email}" onchange="config.People[${index}].email = this.value"></td>
           <td><button onclick="removePerson(${index})">X</button></td>
         `;
 
@@ -125,12 +122,12 @@
       const tbody = document.querySelector("#restrictionsTable tbody");
       tbody.innerHTML = "";
 
-      config.restrictions.forEach((r, index) => {
+      config.Restrictions.forEach((r, index) => {
         const row = document.createElement("tr");
 
         row.innerHTML = `
-          <td><input type="text" value="${r.person1Email}" onchange="config.restrictions[${index}].person1Email = this.value"></td>
-          <td><input type="text" value="${r.person2Email}" onchange="config.restrictions[${index}].person2Email = this.value"></td>
+          <td><input type="text" value="${r.person1Email}" onchange="config.Restrictions[${index}].person1Email = this.value"></td>
+          <td><input type="text" value="${r.person2Email}" onchange="config.Restrictions[${index}].person2Email = this.value"></td>
           <td><button onclick="removeRestriction(${index})">X</button></td>
         `;
 
@@ -139,28 +136,26 @@
     }
 
     function addPerson() {
-      config.people.push({ name: "", email: "" });
+      config.People.push({ name: "", email: "" });
       renderPeople();
     }
 
     function removePerson(index) {
-      config.people.splice(index, 1);
+      config.People.splice(index, 1);
       renderPeople();
     }
 
     function addRestriction() {
-      config.restrictions.push({ person1Email: "", person2Email: "" });
+      config.Restrictions.push({ person1Email: "", person2Email: "" });
       renderRestrictions();
     }
 
     function removeRestriction(index) {
-      config.restrictions.splice(index, 1);
+      config.Restrictions.splice(index, 1);
       renderRestrictions();
     }
 
     async function saveConfig() {
-      alert("Saving config");
-      alert(JSON.stringify(config));
       const response = await fetch("/api/SecretSantaAdminUpdateConfig", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
