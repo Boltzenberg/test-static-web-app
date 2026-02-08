@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Secret Santa</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    select { padding: 6px; margin: 10px 0; }
+    button {
+      padding: 8px 16px;
+      background: #0067c5;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+    button:hover { background: #004f9e; }
+    #assignmentBox {
+      margin-top: 20px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>Secret Santa</h1>
+
+  <label><strong>Select Event:</strong></label><br>
+  <select id="eventDropdown">
+    <option value="">Loading events...</option>
+  </select>
+
+  <br><br>
+
+  <label><strong>Select Your Name:</strong></label><br>
+  <select id="participantDropdown" disabled>
+    <option value="">Select an event first</option>
+  </select>
+
+  <br><br>
+
+  <button id="revealBtn" disabled>Reveal Assignment</button>
+  <button id="emailBtn" disabled>Email Me My Assignment</button>
+
+  <div id="assignmentBox"></div>
+
+  <br><br>
+
+  <a id="mailLink" href="#">Go to Santa Mail Page</a>
+
+  <script>
+    let events = [];
+    let selectedEvent = null;
+
+    // ---------------------------
+    // LOAD RUNNING EVENTS
+    // ---------------------------
+    async function loadEvents() {
+      const response = await fetch("/api/SecretSantaGetAllEvents");
+      const allEvents = await response.json();
+
+      // Only running events
+      events = allEvents.filter(e => e.IsRunning);
+
+      const dropdown = document.getElementById("eventDropdown");
+      dropdown.innerHTML = "<option value=''>-- Select an Event --</option>";
+
+      events.forEach(evt => {
+        const opt = document.createElement("option");
+        opt.value = evt.id;
+        opt.textContent = evt.id;
+        dropdown.appendChild(opt);
+      });
+    }
+
+    // ---------------------------
+    // EVENT SELECTED
+    // ---------------------------
+    document.getElementById("eventDropdown").addEventListener("change", (e) => {
+      const id = e.target.value;
+      const participantDropdown = document.getElementById("participantDropdown");
+      const revealBtn = document.getElementById("revealBtn");
+      const emailBtn = document.getElementById("emailBtn");
+      const assignmentBox = document.getElementById("assignmentBox");
+
+      participantDropdown.disabled = true;
+      revealBtn.disabled = true;
+      emailBtn.disabled = true;
+      assignmentBox.style.display = "none";
+      assignmentBox.textContent = "";
+
+      if (!id) return;
+
+      selectedEvent = events.find(evt => evt.id === id);
+
+      // Populate participants
+      participantDropdown.innerHTML = "<option value=''>-- Select Your Name --</option>";
+      selectedEvent.Participants.forEach(p => {
+        const opt = document.createElement("option");
+        opt.value = p.Email;
+        opt.textContent = `${p.Name} (${p.Email})`;
+        participantDropdown.appendChild(opt);
+      });
+
+      participantDropdown.disabled = false;
+
+      // Update link to santamail page
+      document.getElementById("mailLink").href = `santamail.html?id=${encodeURIComponent(id)}`;
+    });
+
+    // ---------------------------
+    // PARTICIPANT SELECTED
+    // ---------------------------
+    document.getElementById("participantDropdown").addEventListener("change", (e) => {
+      const email = e.target.value;
+      const revealBtn = document.getElementById("revealBtn");
+      const emailBtn = document.getElementById("emailBtn");
+      const assignmentBox = document.getElementById("assignmentBox");
+
+      assignmentBox.style.display = "none";
+      assignmentBox.textContent = "";
+
+      if (!email) {
+        revealBtn.disabled = true;
+        emailBtn.disabled = true;
+        return;
+      }
+
+      revealBtn.disabled = false;
+      emailBtn.disabled = false;
+    });
+
+    // ---------------------------
+    // REVEAL ASSIGNMENT
+    // ---------------------------
+    document.getElementById("revealBtn").addEventListener("click", () => {
+      const email = document.getElementById("participantDropdown").value;
+      if (!email || !selectedEvent) return;
+
+      const confirmReveal = confirm("Are you sure you want to see your assignment? This might spoil the surprise!");
+      if (!confirmReveal) return;
+
+      const participant = selectedEvent.Participants.find(p => p.Email === email);
+      const santaFor = participant?.SantaForEmail ?? "(unassigned)";
+
+      const assignmentBox = document.getElementById("assignmentBox");
+      assignmentBox.textContent = `You are Secret Santa for: ${santaFor}`;
+      assignmentBox.style.display = "block";
+    });
+
+    // ---------------------------
+    // EMAIL ASSIGNMENT
+    // ---------------------------
+    document.getElementById("emailBtn").addEventListener("click", async () => {
+      const email = document.getElementById("participantDropdown").value;
+      if (!email || !selectedEvent) return;
+
+      const response = await fetch(`/api/SecretSantaEmailAssignment?participant=${encodeURIComponent(email)}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(selectedEvent)
+      });
+
+      if (response.ok) {
+        alert("Email sent!");
+      } else {
+        alert("Error sending email.");
+      }
+    });
+
+    // ---------------------------
+    // INIT
+    // ---------------------------
+    loadEvents();
+  </script>
+
+</body>
+</html>

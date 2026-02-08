@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using Boltzenberg.Functions.Algorithms.SecretSanta;
+using Boltzenberg.Functions.Comms;
 
 namespace Boltzenberg.Functions;
 
@@ -95,13 +96,12 @@ public class SecretSanta
     {
         try
         {
-            /*
             ClientPrincipal? principal = ClientPrincipal.FromReq(req);
             if (principal == null || !principal.IsAuthorizedForSecretSantaAdmin())
             {
                 return new UnauthorizedObjectResult("No auth header found");
             }
-*/
+
             string body = await new StreamReader(req.Body).ReadToEndAsync();
             if (!string.IsNullOrEmpty(body))
             {
@@ -148,13 +148,12 @@ public class SecretSanta
     {
         try
         {
-            /*
             ClientPrincipal? principal = ClientPrincipal.FromReq(req);
             if (principal == null || !principal.IsAuthorizedForSecretSantaAdmin())
             {
                 return new UnauthorizedObjectResult("No auth header found");
             }
-*/
+
             string body = await new StreamReader(req.Body).ReadToEndAsync();
             if (!string.IsNullOrEmpty(body))
             {
@@ -203,13 +202,12 @@ public class SecretSanta
     {
         try
         {
-            /*
             ClientPrincipal? principal = ClientPrincipal.FromReq(req);
             if (principal == null || !principal.IsAuthorizedForSecretSantaAdmin())
             {
                 return new UnauthorizedObjectResult("No auth header found");
             }
-            */
+
             string body = await new StreamReader(req.Body).ReadToEndAsync();
             if (!string.IsNullOrEmpty(body))
             {
@@ -264,6 +262,80 @@ public class SecretSanta
         }
     }
 
+    [Function("SecretSantaEmailAssignment")]
+    public async Task<IActionResult> SecretSantaEmailAssignment([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequest req)
+    {
+        try
+        {
+            string? participantEmail = req.Query["participant"];
+            if (string.IsNullOrEmpty(participantEmail))
+            {
+                return new BadRequestObjectResult("Missing the participant query parameter");
+            }
+
+            string body = await new StreamReader(req.Body).ReadToEndAsync();
+            if (!string.IsNullOrEmpty(body))
+            {
+                _logger.LogInformation("Request Body: " + body);
+                SecretSantaEvent? evt = JsonSerializer.Deserialize<SecretSantaEvent>(body);
+                if (evt == null)
+                {
+                    return new BadRequestObjectResult("Failed to deserialize the event");
+                }
+
+                if (!evt.IsRunning)
+                {
+                    return new BadRequestObjectResult("Can't start an event that is running!");
+                }
+
+                var participant = evt.Participants.Find(p => p.Email == participantEmail);
+                if (participant == null)
+                {
+                    return new BadRequestObjectResult("Participant is not part of the event!");
+                }
+
+                var config = await JsonStore.Read<SecretSantaConfig>(SecretSantaConfig.SecretSantaAppId, SecretSantaConfig.SecretSantaConfigId);
+                if (config.Code != ResultCode.Success || config.Entity == null)
+                {
+                    return new BadRequestResult();
+                }
+
+                var person = config.Entity.People.Find(p => p.Email == participantEmail);
+                if (person == null)
+                {
+                    return new BadRequestObjectResult("Failed to find the participant email address '" + participantEmail + "' in the secret santa config!");
+                }
+
+                var santaForPerson = config.Entity.People.Find(p => p.Email == participant.SantaForEmail);
+                if (santaForPerson == null)
+                {
+                    return new BadRequestObjectResult("Failed to find the santafor email address '" + participant.SantaForEmail + "' in the secret santa config!");
+                }
+
+                bool result = await Email.SendSantaMailAsync(
+                    person.Name,
+                    person.Email,
+                    "Secret Santa Assignment",
+                    string.Format("Hi {0}!  Your secret santa assignment for {1} is {2} ({3}).", person.Name, evt.id, santaForPerson.Name, santaForPerson.Email));
+
+                if (result)
+                {
+                    return new OkResult();
+                }
+                else
+                {
+                    return new BadRequestObjectResult("Failed to send the email");
+                }
+            }
+
+            return new BadRequestObjectResult("No request body!");
+        }
+        catch (Exception ex)
+        {
+            return new BadRequestObjectResult(ex.ToString());
+        }
+    }
+    
     [Function("SecretSantaSendSantaMail")]
     public async Task<IActionResult> SecretSantaSendSantaMail([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequest req)
     {

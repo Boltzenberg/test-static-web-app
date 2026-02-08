@@ -5,13 +5,13 @@ namespace Boltzenberg.Functions.Comms
     public class Email
     {
         private const string FromAddress = "santamail@boltzenberg.com";
-        private const string FromName = "Website Contact Form";
+        private const string FromName = "Secret Santa";
         private const string MailJetUrl = "https://api.mailjet.com/v3.1/send";
         private static string MailJetAPIKey = Environment.GetEnvironmentVariable("MAILJET_API_KEY") ?? string.Empty;
         private static string MailJetSecretKey = Environment.GetEnvironmentVariable("MAILJET_SECRET_KEY") ?? string.Empty;
         private static readonly HttpClient httpClient = new HttpClient();
 
-        private static async Task<bool> SendSantaMailAsync(string toName, string toAddress, string subject, string body)
+        public static async Task<bool> SendSantaMailAsync(string toName, string toAddress, string subject, string body)
         {
             // Build the request payload using anonymous objects
             var payload = new
@@ -47,7 +47,7 @@ namespace Boltzenberg.Functions.Comms
             return response.IsSuccessStatusCode;
         }
  
-        private static async Task<bool> SendSantaMailAsync(List<Tuple<string, string>> toAddresses, string subject, string body)
+        public static async Task<bool> SendSantaMailAsync(List<Tuple<string, string>> toAddresses, string subject, string body)
         {
             // Convert tuples → MailJet "To" objects 
             var toList = toAddresses.Select(t => new 
