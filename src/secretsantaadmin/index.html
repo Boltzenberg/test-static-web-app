@@ -51,10 +51,29 @@
     </table>
     <button onclick="addRestriction()">Add Restriction</button>
 
+    <h2>Events</h2>
+    <div id="eventsList"></div>
+
+    <div id="eventEditor" style="display:none; margin-top:20px;">
+    <h3 id="eventTitle"></h3>
+
+    <label>
+        <input type="checkbox" id="eventIsRunning" />
+        Event is Running
+    </label>
+
+    <h4>Participants</h4>
+    <div id="eventPeopleCheckboxes"></div>
+
+    <button onclick="saveEvent()">Save Event</button>
+    </div>
+
   </div>
 
   <script>
     let config = null;
+    let events = [];
+    let selectedEvent = null;
 
     async function checkAuth() {
       const authDiv = document.getElementById('authContainer');
@@ -169,12 +188,101 @@
       }
     }
 
+    async function loadEvents() {
+        const response = await fetch("/api/SecretSantaGetAllEvents");
+        events = await response.json();
+        renderEventsList();
+    }
+
+    function renderEventsList() {
+        const div = document.getElementById("eventsList");
+        div.innerHTML = "";
+
+        events.forEach(evt => {
+        const a = document.createElement("a");
+        a.href = "#";
+        a.textContent = evt.id;   // event name is in "id"
+        a.style.display = "block";
+        a.onclick = () => showEventEditor(evt);
+        div.appendChild(a);
+        });
+    }
+
+    function showEventEditor(evt) {
+        selectedEvent = evt;
+
+        document.getElementById("eventTitle").textContent = evt.id;
+        document.getElementById("eventIsRunning").checked = evt.IsRunning;
+
+        const container = document.getElementById("eventPeopleCheckboxes");
+        container.innerHTML = "";
+
+        config.People.forEach(person => {
+        const id = `chk_${person.Email.replace(/[^a-zA-Z0-9]/g, "_")}`;
+
+        const isInEvent = evt.Participants.some(p => p.Email === person.Email);
+
+        const wrapper = document.createElement("div");
+        wrapper.innerHTML = `
+            <label>
+            <input type="checkbox" id="${id}" ${isInEvent ? "checked" : ""}>
+            ${person.Name} (${person.Email})
+            </label>
+        `;
+
+        container.appendChild(wrapper);
+        });
+
+        document.getElementById("eventEditor").style.display = "block";
+    }
+
+    async function saveEvent() {
+        if (!selectedEvent) return;
+
+        const updatedParticipants = [];
+
+        config.People.forEach(person => {
+        const id = `chk_${person.Email.replace(/[^a-zA-Z0-9]/g, "_")}`;
+        const checkbox = document.getElementById(id);
+
+        if (checkbox && checkbox.checked) {
+            updatedParticipants.push({
+            Email: person.Email,
+            SantaForEmail: null
+            });
+        }
+        });
+
+        const updatedEvent = {
+        id: selectedEvent.id,
+        eventId: selectedEvent.id,   // your eventId matches id
+        IsRunning: document.getElementById("eventIsRunning").checked,
+        Participants: updatedParticipants
+        };
+
+        const response = await fetch("/api/SecretSantaAdminUpdateEvent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedEvent)
+        });
+
+        if (response.ok) {
+        alert("Event updated!");
+        await loadEvents();
+        } else {
+        alert("Error saving event");
+        }
+    }
+
     (async function init() {
       const isAuthed = await checkAuth();
       if (!isAuthed) return;
 
       document.getElementById('pageTitle').style.display = 'block';
       document.getElementById('editor').style.display = 'block';
+
+      await loadConfig();
+      await loadEvents();
     })();
   </script>
 
