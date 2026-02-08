@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Santa Mail</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    input[type=text], textarea {
+      width: 100%;
+      padding: 8px;
+      margin-top: 4px;
+      margin-bottom: 12px;
+    }
+    textarea {
+      height: 200px;
+      resize: vertical;
+    }
+    .readonly {
+      background: #f0f0f0;
+      border: 1px solid #ccc;
+      padding: 8px;
+      border-radius: 4px;
+    }
+    button {
+      padding: 10px 20px;
+      background: #0067c5;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover { background: #004f9e; }
+  </style>
+</head>
+
+<body>
+
+  <h1 id="eventTitle">Loading...</h1>
+
+  <label><strong>From:</strong></label>
+  <div class="readonly">santamail@boltzenberg.com</div>
+
+  <label><strong>To:</strong></label>
+  <div id="toList" class="readonly">Loading...</div>
+
+  <label><strong>Subject:</strong></label>
+  <div id="subjectLine" class="readonly"></div>
+
+  <label><strong>Body:</strong></label>
+  <textarea id="bodyBox" placeholder="Write your message here..."></textarea>
+
+  <button id="sendBtn">Send</button>
+
+  <script>
+    let eventId = null;
+    let eventData = null;
+
+    // ---------------------------
+    // Read query parameter
+    // ---------------------------
+    function getQueryParam(name) {
+      const params = new URLSearchParams(window.location.search);
+      return params.get(name);
+    }
+
+    // ---------------------------
+    // Load event
+    // ---------------------------
+    async function loadEvent() {
+      eventId = getQueryParam("id");
+      if (!eventId) {
+        document.getElementById("eventTitle").textContent = "Missing event id";
+        return;
+      }
+
+      const response = await fetch(`/api/SecretSantaGetEvent?id=${encodeURIComponent(eventId)}`);
+      eventData = await response.json();
+
+      document.getElementById("eventTitle").textContent =
+        `${eventData.GroupName} ${eventData.Year}`;
+
+      // Populate "To" list
+      const toList = eventData.Participants
+        .map(p => `${p.Name} (${p.Email})`)
+        .join(", ");
+
+      document.getElementById("toList").textContent = toList;
+
+      // Subject line
+      document.getElementById("subjectLine").textContent =
+        `SantaMail for event '${eventData.id}'`;
+    }
+
+    // ---------------------------
+    // Send mail
+    // ---------------------------
+    document.getElementById("sendBtn").addEventListener("click", async () => {
+      const bodyText = document.getElementById("bodyBox").value.trim();
+
+      if (!bodyText) {
+        alert("Please enter a message before sending.");
+        return;
+      }
+
+      const response = await fetch(`/api/SecretSantaSendSantaMail?id=${encodeURIComponent(eventId)}`, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: bodyText
+      });
+
+      if (response.ok) {
+        alert("Santa Mail sent!");
+      } else {
+        alert("Error sending Santa Mail.");
+      }
+    });
+
+    // ---------------------------
+    // INIT
+    // ---------------------------
+    loadEvent();
+  </script>
+
+</body>
+</html>

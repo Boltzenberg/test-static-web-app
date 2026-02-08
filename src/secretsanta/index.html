@@ -146,10 +146,13 @@
       if (!confirmReveal) return;
 
       const participant = selectedEvent.Participants.find(p => p.Email === email);
-      const santaFor = participant?.SantaForEmail ?? "(unassigned)";
+      const santaName = participant?.SantaForName ?? "(unassigned)";
+      const santaEmail = participant?.SantaForEmail ?? "";
 
       const assignmentBox = document.getElementById("assignmentBox");
-      assignmentBox.textContent = `You are Secret Santa for: ${santaFor}`;
+      assignmentBox.textContent =
+        santaEmail ? `You are Secret Santa for: ${santaName} (${santaEmail})`
+                   : `You are Secret Santa for: ${santaName}`;
       assignmentBox.style.display = "block";
     });
 

@@ -294,29 +294,11 @@ public class SecretSanta
                     return new BadRequestObjectResult("Participant is not part of the event!");
                 }
 
-                var config = await JsonStore.Read<SecretSantaConfig>(SecretSantaConfig.SecretSantaAppId, SecretSantaConfig.SecretSantaConfigId);
-                if (config.Code != ResultCode.Success || config.Entity == null)
-                {
-                    return new BadRequestResult();
-                }
-
-                var person = config.Entity.People.Find(p => p.Email == participantEmail);
-                if (person == null)
-                {
-                    return new BadRequestObjectResult("Failed to find the participant email address '" + participantEmail + "' in the secret santa config!");
-                }
-
-                var santaForPerson = config.Entity.People.Find(p => p.Email == participant.SantaForEmail);
-                if (santaForPerson == null)
-                {
-                    return new BadRequestObjectResult("Failed to find the santafor email address '" + participant.SantaForEmail + "' in the secret santa config!");
-                }
-
                 bool result = await Email.SendSantaMailAsync(
-                    person.Name,
-                    person.Email,
+                    participant.Name,
+                    participant.Email,
                     "Secret Santa Assignment",
-                    string.Format("Hi {0}!  Your secret santa assignment for {1} is {2} ({3}).", person.Name, evt.id, santaForPerson.Name, santaForPerson.Email));
+                    string.Format("Hi {0}!  Your secret santa assignment for {1} is {2} ({3}).", participant.Name, evt.id, participant.SantaForName, participant.SantaForEmail));
 
                 if (result)
                 {
@@ -341,13 +323,43 @@ public class SecretSanta
     {
         try
         {
-            string? entryId = req.Query["id"];
-            if (string.IsNullOrEmpty(entryId))
+            string? evtId = req.Query["id"];
+            if (string.IsNullOrEmpty(evtId))
             {
                 return new BadRequestObjectResult("Missing the id query parameter");
             }
 
-            return new BadRequestResult();
+            string body = await new StreamReader(req.Body).ReadToEndAsync();
+            if (string.IsNullOrEmpty(body))
+            {
+                return new BadRequestObjectResult("Missing the email message in the POST body");
+            }
+
+            var evt = await JsonStore.Read<SecretSantaEvent>(SecretSantaEvent.SecretSantaEventAppId, evtId);
+            if (evt.Code != ResultCode.Success || evt.Entity == null)
+            {
+                return new BadRequestObjectResult("Failed to find the event with id " + evtId);
+            }
+
+            List<Tuple<string, string>> toAddresses = new List<Tuple<string, string>>();
+            foreach (var participant in evt.Entity.Participants)
+            {
+                toAddresses.Add(new Tuple<string, string>(participant.Name, participant.Email));
+            }
+
+            bool result = await Email.SendSantaMailAsync(
+                toAddresses,
+                string.Format("SantaMail for event '{0}'", evt.Entity.id),
+                body);
+
+            if (result)
+            {
+                return new OkResult();
+            }
+            else
+            {
+                return new BadRequestObjectResult("Failed to send the mail");
+            }
         }
         catch (Exception ex)
         {

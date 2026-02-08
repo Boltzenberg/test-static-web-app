@@ -22,7 +22,14 @@ namespace Boltzenberg.Functions.Algorithms.SecretSanta
 
             foreach (var participant in currentEvent.Participants)
             {
-                participant.SantaForEmail = assignments[participant.Email];
+                var assignment = config.People.Find(p => p.Email == assignments[participant.Email]);
+                if (assignment == null)
+                {
+                    return false;
+                }
+
+                participant.SantaForName = assignment.Name;
+                participant.SantaForEmail = assignment.Email;
             }
 
             return true;
