@@ -11,6 +11,11 @@ namespace Boltzenberg.Functions.Comms
         private static string MailJetSecretKey = Environment.GetEnvironmentVariable("MAILJET_SECRET_KEY") ?? string.Empty;
         private static readonly HttpClient httpClient = new HttpClient();
 
+        public static async Task<bool> SendWeeklyMailAsync()
+        {
+            return await SendSantaMailAsync("Jon Rosenberg", "jon.p.rosenberg@gmail.com", "Mail Check", "Mail is still working!");
+        }
+
         public static async Task<bool> SendSantaMailAsync(string toName, string toAddress, string subject, string body)
         {
             // Build the request payload using anonymous objects
