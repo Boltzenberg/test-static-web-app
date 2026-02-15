@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text;
+using Boltzenberg.Functions.Comms;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
@@ -21,45 +22,6 @@ public class SubmitContactForm
     {
         _logger = logger;
     }
-
-    private static async Task<bool> MailJetSantaMailAsync(string toAddress, string toName, string body)
-    {
-        var url = "https://api.mailjet.com/v3.1/send";
-
-        // Build the request payload using anonymous objects
-        var payload = new
-        {
-            Messages = new[]
-            {
-                new
-                {
-                    From = new { Email = FromAddress, Name = FromName },
-                    To = new[] { new { Email = toAddress, Name = toName } },
-                    Subject = Subject,
-                    HTMLPart = body.Replace(Environment.NewLine, "<br>")
-                }
-            }
-        };
-
-        // Serialize to JSON
-        string json = System.Text.Json.JsonSerializer.Serialize(payload);
-
-        // Build the request
-        var request = new HttpRequestMessage(HttpMethod.Post, url)
-        {
-            Content = new StringContent(json, Encoding.UTF8, "application/json")
-        };
-
-        // Add Basic Auth header
-        string auth = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{MailJetAPIKey}:{MailJetSecretKey}"));
-        request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", auth);
-
-        // Send
-        var response = await httpClient.SendAsync(request);
-
-        return response.IsSuccessStatusCode;
-    }
-
 
     private static bool MailJetSantaMail(string toAddress, string toName, string body)
     {
@@ -136,8 +98,35 @@ public class SubmitContactForm
     }
 
     [Function("ContactJonRosenberg")]
-    public IActionResult ContactJonRosenberg([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequest req)
+    public async Task<IActionResult> ContactJonRosenberg([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequest req)
     {
-        return SendEmail("jon.p.rosenberg@gmail.com", "Jon Rosenberg", req);
+        string toAddress = "jon.p.rosenberg@gmail.com";
+        string toName = "Jon Rosenberg";
+        string message = "This is a test mail";
+
+        if (req.Method.ToLowerInvariant() == "post")
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendFormat("Name: {0}{1}", req.Form["name"], Environment.NewLine);
+            sb.AppendFormat("Email Address: {0}{1}", req.Form["email"], Environment.NewLine);
+            sb.AppendFormat("Message: {0}{1}", req.Form["message"], Environment.NewLine);
+            message = sb.ToString();
+        }
+
+        string responseMessage = string.Empty;
+        if (await Email.SendContactFormMailAsync(toName, toAddress, message))
+        {
+            responseMessage = "<H2>Great! Thanks for filling out my form!</H2>";
+        }
+        else
+        {
+            responseMessage = "<H2>Oops! There was a problem submitting the form.</H2>";
+        }
+
+        return new ContentResult {
+            Content = responseMessage,
+            ContentType = "text/html",
+            StatusCode = 200
+        };
     }
 }
