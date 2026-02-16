@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <title>Address Book</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; }
+    body { font-size: 18px; font-family: sans-serif; line-height: 1.4; padding: 20px; }
     #status { margin-top: 10px; color: #666; }
     #addressDisplay { margin-top: 20px; font-size: 1.1em; }
     #authContainer { margin-bottom: 20px; }
@@ -28,7 +28,7 @@
     <option value="">Loading...</option>
   </select>
 
-  <div id="addressDisplay" style="min-height: 130px;"></div>
+  <div id="addressDisplay" style="min-height: 150px;"></div>
   <div id="linksDiv" style="margin-top: 20px;"></div>
   <div id="holidayListAnchorsDiv">
     <a href="#" onclick="displayHolidayCardPreview(); return false;">View Holiday Card List</a><br>
@@ -167,8 +167,8 @@
       addressDisplayDiv.innerHTML = addressLines.join("<br>");
 
       const linksLines = [
-        `<a href="edit.html?id=${encodeURIComponent(entry.id)}">Edit this entry</a>`,
-        `<a href="add.html">Add new entry</a>`,
+        `<a href="/addressbook/edit.html?id=${encodeURIComponent(entry.id)}">Edit this entry</a>`,
+        `<a href="/addressbook/add.html">Add new entry</a>`,
         `<a href="${googleMapsUrl(entry)}">Map it!</a>`
       ];
       linksDiv.innerHTML = linksLines.join("<br>");
