@@ -56,7 +56,8 @@ namespace Boltzenberg.Functions.DataModels.Auth
         private static HashSet<string> AddressBookAuthorizedUsers = new HashSet<string>()
         {
             "jon_rosenberg@hotmail.com",
-            "treester@hotmail.com"
+            "treester@hotmail.com",
+            "teresar@outlook.com"
         };
 
         public bool IsAuthorizedForAddressBook()
