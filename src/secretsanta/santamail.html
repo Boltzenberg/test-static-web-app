@@ -112,7 +112,7 @@
         alert("Santa Mail sent!");
 
         // Redirect back to the Secret Santa home page with the event preselected
-        window.location.href = `index.html?event=${encodeURIComponent(eventId)}`;
+        window.location.href = `/addressbook/index.html?event=${encodeURIComponent(eventId)}`;
       } else {
         alert("Error sending Santa Mail.");
       }

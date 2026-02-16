@@ -123,9 +123,7 @@
 
       participantDropdown.disabled = false;
 
-      // Update link to santamail page
-      const base = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, "/");
-      document.getElementById("mailLink").href = `${base}santamail.html?id=${encodeURIComponent(id)}`;
+      document.getElementById("mailLink").href = `/addressbook/santamail.html?id=${encodeURIComponent(id)}`;
     });
 
     // ---------------------------

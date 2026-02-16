@@ -253,7 +253,7 @@
         const li = document.createElement("li");
 
         const link = document.createElement("a");
-        link.href = `edit.html?id=${entry.id}`;
+        link.href = `/addressbook/edit.html?id=${entry.id}`;
         link.textContent = entry.MailingName || "(Unnamed Entry)";
 
         li.appendChild(link);

@@ -137,7 +137,7 @@
 
         // Jump to edit page for the new entry
         setTimeout(() => {
-          window.location.href = `edit.html?id=${encodeURIComponent(created.id)}`;
+          window.location.href = `/addressbook/edit.html?id=${encodeURIComponent(created.id)}`;
         }, 600);
 
       } catch (err) {
