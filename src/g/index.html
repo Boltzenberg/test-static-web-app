@@ -4,8 +4,37 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/g/styles.css">
   <title>Grocery List</title>
+
+  <style>
+    * {
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    html, body {
+      margin: 0;
+      border: 0;
+      padding: 0;
+      background-color: #fff;
+      font-size: 18px;
+    }
+
+    main {
+      margin: auto;
+      width: 50%;
+      padding: 20px;
+    }
+
+    main > h1 {
+      text-align: center;
+      font-size: 3.5em;
+    }
+
+    /* Hide the form until the initial load completes */
+    #gForm {
+      display: none;
+    }
+  </style>
 </head>
 
 <body>
@@ -17,32 +46,28 @@
     <div id="checkboxContainer"></div><br>
     <input type="submit" value="Update"><br>
 
-    <lable for="multi-add">Add Multiple Items:</lable><br>
+    <label for="multi-add">Add Multiple Items:</label><br>
     <textarea id="multi-add" name="multi-add" rows="4" cols="50"></textarea><br>
     <input type="submit" value="Update"><br>
   </form>
+
   <div id="results"></div><br>
 
   <script>
     let LIST_ID = "Test";
 
     function updateCheckboxes(groceryListItems) {
-     //alert("Updating Checkboxes on " + updateGroceryListPayload);
-
       const container = document.getElementById('checkboxContainer');
 
-      // First remove all checkboxes
       while (container.firstChild) {
         container.removeChild(container.firstChild);
       }
 
-      // Sort the grocery list
-      groceryListItems.sort((a, b) => a.Item.toLowerCase().localeCompare(b.Item.toLowerCase()));
+      groceryListItems.sort((a, b) =>
+        a.Item.toLowerCase().localeCompare(b.Item.toLowerCase())
+      );
 
-      // Now add back the ToAdd items
       groceryListItems.forEach(element => {
-        // alert("Creating checkbox for " + element.Item);
-
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
         checkbox.id = 'checkbox' + container.getElementsByTagName('input').length;
@@ -57,50 +82,36 @@
         container.appendChild(document.createElement('br'));
       });
 
-      const multiAdd = document.getElementById('multi-add');
-      multiAdd.value = '';
-
+      document.getElementById('multi-add').value = '';
       const singleAdd = document.getElementById('single-add');
       singleAdd.value = '';
       singleAdd.focus();
     }
 
-
     document.getElementById('gForm').addEventListener('submit', function(event) {
-      event.preventDefault(); // Stop the form from submitting normally
+      event.preventDefault();
 
-      // Get the form data
       const formData = new FormData(event.target);
       const singleAdd = formData.get('single-add');
       const multiAdd = formData.get('multi-add');
 
-      let toAdd = new Array();
+      let toAdd = [];
       if (singleAdd) {
-        //alert("Adding " + singleAdd);
-        let item = {
-          Item: singleAdd,
-        };
-        toAdd.push(item);
+        toAdd.push({ Item: singleAdd });
       }
 
       if (multiAdd) {
         const lines = multiAdd.split(/\r?\n/);
         lines.forEach(line => {
-          //alert("Adding " + line);
-          let item = {
-            Item: line,
-          };
-          toAdd.push(item);
+          toAdd.push({ Item: line });
         });
       }
 
-      let toRemove = new Array();
+      let toRemove = [];
       const container = document.getElementById('checkboxContainer');
       Array.from(container.getElementsByTagName('input')).forEach(element => {
         if (element.checked) {
-          //alert("Adding " + element.dataset.json + " to delete list");
-          var item = JSON.parse(element.dataset.json);
-          toRemove.push(item);
+          toRemove.push(JSON.parse(element.dataset.json));
         }
       });
 
@@ -108,7 +119,6 @@
         ToAdd: toAdd,
         ToRemove: toRemove
       };
-      //document.getElementById('results').innerText = JSON.stringify(payload);
 
       fetch('/api/UpdateGroceryList', {
         method: "POST",
@@ -122,13 +132,6 @@
       .then(data => updateCheckboxes(data))
       .catch(error => alert(error));
     });
-
-    /*
-    (function() {
-      var payload = JSON.parse('[{"Item":"Bananas"},{"Item":"Apples"},{"Item":"Zoo"},{"Item":"Cherries"},{"Item":"Cat"},{"Item":"Dog"}]');
-      updateCheckboxes(payload);
-    }());
-    */
 
     (async function() {
       const msgdiv = document.getElementById('results');
@@ -151,7 +154,10 @@
         alert("Exception: " + error);
       }
 
-      msgdiv.innerText = "";      
+      msgdiv.innerText = "";
+
+      // Reveal the form now that loading is done
+      document.getElementById('gForm').style.display = 'block';
     }());
   </script>
 </body>
