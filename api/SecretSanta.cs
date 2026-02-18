@@ -26,7 +26,7 @@ public class SecretSanta
     {
         try
         {
-            ClientPrincipal? principal = ClientPrincipal.FromReq(req);
+            ClientPrincipal? principal = await ClientPrincipal.FromReq(req);
             if (principal == null || !principal.IsAuthorizedForSecretSantaAdmin())
             {
                 return new UnauthorizedObjectResult("No auth header found");
@@ -53,7 +53,7 @@ public class SecretSanta
     {
         try
         {
-            ClientPrincipal? principal = ClientPrincipal.FromReq(req);
+            ClientPrincipal? principal = await ClientPrincipal.FromReq(req);
             if (principal == null || !principal.IsAuthorizedForSecretSantaAdmin())
             {
                 return new UnauthorizedObjectResult("No auth header found");
@@ -96,7 +96,7 @@ public class SecretSanta
     {
         try
         {
-            ClientPrincipal? principal = ClientPrincipal.FromReq(req);
+            ClientPrincipal? principal = await ClientPrincipal.FromReq(req);
             if (principal == null || !principal.IsAuthorizedForSecretSantaAdmin())
             {
                 return new UnauthorizedObjectResult("No auth header found");
@@ -148,7 +148,7 @@ public class SecretSanta
     {
         try
         {
-            ClientPrincipal? principal = ClientPrincipal.FromReq(req);
+            ClientPrincipal? principal = await ClientPrincipal.FromReq(req);
             if (principal == null || !principal.IsAuthorizedForSecretSantaAdmin())
             {
                 return new UnauthorizedObjectResult("No auth header found");
@@ -202,7 +202,7 @@ public class SecretSanta
     {
         try
         {
-            ClientPrincipal? principal = ClientPrincipal.FromReq(req);
+            ClientPrincipal? principal = await ClientPrincipal.FromReq(req);
             if (principal == null || !principal.IsAuthorizedForSecretSantaAdmin())
             {
                 return new UnauthorizedObjectResult("No auth header found");

@@ -24,7 +24,7 @@ public class AddressBook
     {
         try
         {
-            ClientPrincipal? principal = ClientPrincipal.FromReq(req);
+            ClientPrincipal? principal = await ClientPrincipal.FromReq(req);
             if (principal == null || !principal.IsAuthorizedForAddressBook())
             {
                 return new UnauthorizedObjectResult("No auth header found");
@@ -59,7 +59,7 @@ public class AddressBook
     {
         try
         {
-            ClientPrincipal? principal = ClientPrincipal.FromReq(req);
+            ClientPrincipal? principal = await ClientPrincipal.FromReq(req);
             if (principal == null || !principal.IsAuthorizedForAddressBook())
             {
                 return new UnauthorizedObjectResult("No auth header found");
@@ -99,7 +99,7 @@ public class AddressBook
     {
         try
         {
-            ClientPrincipal? principal = ClientPrincipal.FromReq(req);
+            ClientPrincipal? principal = await ClientPrincipal.FromReq(req);
             if (principal == null || !principal.IsAuthorizedForAddressBook())
             {
                 return new UnauthorizedObjectResult("No auth header found");
@@ -139,7 +139,7 @@ public class AddressBook
     {
         try
         {
-            ClientPrincipal? principal = ClientPrincipal.FromReq(req);
+            ClientPrincipal? principal = await ClientPrincipal.FromReq(req);
             if (principal == null || !principal.IsAuthorizedForAddressBook())
             {
                 return new UnauthorizedObjectResult("No auth header found");
@@ -166,7 +166,7 @@ public class AddressBook
     {
         try
         {
-            ClientPrincipal? principal = ClientPrincipal.FromReq(req);
+            ClientPrincipal? principal = await ClientPrincipal.FromReq(req);
             if (principal == null || !principal.IsAuthorizedForAddressBook())
             {
                 return new UnauthorizedObjectResult("No auth header found");
