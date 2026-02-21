@@ -26,7 +26,7 @@ public class SecretSanta
     {
         try
         {
-            if (!await AuthZChecker.IsAuthorizedForSecretSantaAdmin(req))
+            if (!AuthZChecker.IsAuthorizedForSecretSantaAdmin(req))
             {
                 return new UnauthorizedObjectResult("No auth header found");
             }
@@ -52,7 +52,7 @@ public class SecretSanta
     {
         try
         {
-            if (!await AuthZChecker.IsAuthorizedForSecretSantaAdmin(req))
+            if (!AuthZChecker.IsAuthorizedForSecretSantaAdmin(req))
             {
                 return new UnauthorizedObjectResult("No auth header found");
             }
@@ -94,7 +94,7 @@ public class SecretSanta
     {
         try
         {
-            if (!await AuthZChecker.IsAuthorizedForSecretSantaAdmin(req))
+            if (!AuthZChecker.IsAuthorizedForSecretSantaAdmin(req))
             {
                 return new UnauthorizedObjectResult("No auth header found");
             }
@@ -145,7 +145,7 @@ public class SecretSanta
     {
         try
         {
-            if (!await AuthZChecker.IsAuthorizedForSecretSantaAdmin(req))
+            if (!AuthZChecker.IsAuthorizedForSecretSantaAdmin(req))
             {
                 return new UnauthorizedObjectResult("No auth header found");
             }
@@ -198,7 +198,7 @@ public class SecretSanta
     {
         try
         {
-            if (!await AuthZChecker.IsAuthorizedForSecretSantaAdmin(req))
+            if (!AuthZChecker.IsAuthorizedForSecretSantaAdmin(req))
             {
                 return new UnauthorizedObjectResult("No auth header found");
             }

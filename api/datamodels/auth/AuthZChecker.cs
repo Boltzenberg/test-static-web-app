@@ -5,9 +5,9 @@ namespace Boltzenberg.Functions.DataModels.Auth
 {
     public static class AuthZChecker
     {
-        public static async Task<bool> IsAuthorizedForAddressBook(HttpRequest req)
+        public static bool IsAuthorizedForAddressBook(HttpRequest req)
         {
-            ClientPrincipal? principal = await ClientPrincipal.FromReq(req);
+            ClientPrincipal? principal = ClientPrincipal.FromReq(req);
             if (principal != null && principal.IsAuthorizedForAddressBook())
             {
                 return true;
@@ -21,9 +21,9 @@ namespace Boltzenberg.Functions.DataModels.Auth
             return false;
         }
 
-        public static async Task<bool> IsAuthorizedForSecretSantaAdmin(HttpRequest req)
+        public static bool IsAuthorizedForSecretSantaAdmin(HttpRequest req)
         {
-            ClientPrincipal? principal = await ClientPrincipal.FromReq(req);
+            ClientPrincipal? principal = ClientPrincipal.FromReq(req);
             if (principal != null && principal.IsAuthorizedForSecretSantaAdmin())
             {
                 return true;

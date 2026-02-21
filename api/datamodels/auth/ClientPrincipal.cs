@@ -20,7 +20,7 @@ namespace Boltzenberg.Functions.DataModels.Auth
         [JsonPropertyName("userRoles")]
         public IEnumerable<string>? UserRoles { get; set; }
 
-        public static async Task<ClientPrincipal?> FromReq(HttpRequest req)
+        public static ClientPrincipal? FromReq(HttpRequest req)
         {
             // 1. Read the header 
             if (!req.Headers.TryGetValue("X-MS-CLIENT-PRINCIPAL", out var headerValues))
