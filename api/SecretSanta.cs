@@ -26,8 +26,7 @@ public class SecretSanta
     {
         try
         {
-            ClientPrincipal? principal = await ClientPrincipal.FromReq(req);
-            if (principal == null || !principal.IsAuthorizedForSecretSantaAdmin())
+            if (!await AuthZChecker.IsAuthorizedForSecretSantaAdmin(req))
             {
                 return new UnauthorizedObjectResult("No auth header found");
             }
@@ -53,8 +52,7 @@ public class SecretSanta
     {
         try
         {
-            ClientPrincipal? principal = await ClientPrincipal.FromReq(req);
-            if (principal == null || !principal.IsAuthorizedForSecretSantaAdmin())
+            if (!await AuthZChecker.IsAuthorizedForSecretSantaAdmin(req))
             {
                 return new UnauthorizedObjectResult("No auth header found");
             }
@@ -96,8 +94,7 @@ public class SecretSanta
     {
         try
         {
-            ClientPrincipal? principal = await ClientPrincipal.FromReq(req);
-            if (principal == null || !principal.IsAuthorizedForSecretSantaAdmin())
+            if (!await AuthZChecker.IsAuthorizedForSecretSantaAdmin(req))
             {
                 return new UnauthorizedObjectResult("No auth header found");
             }
@@ -148,8 +145,7 @@ public class SecretSanta
     {
         try
         {
-            ClientPrincipal? principal = await ClientPrincipal.FromReq(req);
-            if (principal == null || !principal.IsAuthorizedForSecretSantaAdmin())
+            if (!await AuthZChecker.IsAuthorizedForSecretSantaAdmin(req))
             {
                 return new UnauthorizedObjectResult("No auth header found");
             }
@@ -202,8 +198,7 @@ public class SecretSanta
     {
         try
         {
-            ClientPrincipal? principal = await ClientPrincipal.FromReq(req);
-            if (principal == null || !principal.IsAuthorizedForSecretSantaAdmin())
+            if (!await AuthZChecker.IsAuthorizedForSecretSantaAdmin(req))
             {
                 return new UnauthorizedObjectResult("No auth header found");
             }

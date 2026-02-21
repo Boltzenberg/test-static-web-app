@@ -20,32 +20,23 @@ namespace Boltzenberg.Functions.DataModels.Auth
         [JsonPropertyName("userRoles")]
         public IEnumerable<string>? UserRoles { get; set; }
 
-        private static async Task AddAuthLogLine(string line)
-        {
-            await JsonStore.Create<AuthLog>(new AuthLog(line));
-        }
-
         public static async Task<ClientPrincipal?> FromReq(HttpRequest req)
         {
             // 1. Read the header 
             if (!req.Headers.TryGetValue("X-MS-CLIENT-PRINCIPAL", out var headerValues))
             {
-                await AddAuthLogLine("Failed to find X-MS-CLIENT-PRINCIPAL");
                 return null;
             }
 
             var encoded = headerValues.First();
             if (encoded == null)
             {
-                await AddAuthLogLine("No encoded values in the X-MS-CLIENT-PRINCIPAL header");
                 return null;
             }
 
             // 2. Decode Base64 → JSON 
             var decodedBytes = Convert.FromBase64String(encoded);
             var json = Encoding.UTF8.GetString(decodedBytes);
-
-            await AddAuthLogLine("Authenticated user: " + json);
 
             // 3. Deserialize
             return JsonSerializer.Deserialize<ClientPrincipal>(json);

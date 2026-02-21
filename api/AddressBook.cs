@@ -24,8 +24,7 @@ public class AddressBook
     {
         try
         {
-            ClientPrincipal? principal = await ClientPrincipal.FromReq(req);
-            if (principal == null || !principal.IsAuthorizedForAddressBook())
+            if (!await AuthZChecker.IsAuthorizedForAddressBook(req))
             {
                 return new UnauthorizedObjectResult("No auth header found");
             }
@@ -59,8 +58,7 @@ public class AddressBook
     {
         try
         {
-            ClientPrincipal? principal = await ClientPrincipal.FromReq(req);
-            if (principal == null || !principal.IsAuthorizedForAddressBook())
+            if (!await AuthZChecker.IsAuthorizedForAddressBook(req))
             {
                 return new UnauthorizedObjectResult("No auth header found");
             }
@@ -99,8 +97,7 @@ public class AddressBook
     {
         try
         {
-            ClientPrincipal? principal = await ClientPrincipal.FromReq(req);
-            if (principal == null || !principal.IsAuthorizedForAddressBook())
+            if (!await AuthZChecker.IsAuthorizedForAddressBook(req))
             {
                 return new UnauthorizedObjectResult("No auth header found");
             }
@@ -139,8 +136,7 @@ public class AddressBook
     {
         try
         {
-            ClientPrincipal? principal = await ClientPrincipal.FromReq(req);
-            if (principal == null || !principal.IsAuthorizedForAddressBook())
+            if (!await AuthZChecker.IsAuthorizedForAddressBook(req))
             {
                 return new UnauthorizedObjectResult("No auth header found");
             }
@@ -166,8 +162,7 @@ public class AddressBook
     {
         try
         {
-            ClientPrincipal? principal = await ClientPrincipal.FromReq(req);
-            if (principal == null || !principal.IsAuthorizedForAddressBook())
+            if (!await AuthZChecker.IsAuthorizedForAddressBook(req))
             {
                 return new UnauthorizedObjectResult("No auth header found");
             }
