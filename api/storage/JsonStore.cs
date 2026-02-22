@@ -92,6 +92,30 @@ namespace Boltzenberg.Functions.Storage
             }
         }
 
+        public static async Task<OperationResult<T>> Upsert<T>(T entity) where T : CosmosDocument
+        {
+            try
+            {
+                ItemResponse<T> upsertResponse = await container.UpsertItemAsync<T>(
+                    entity,
+                    new PartitionKey(entity.AppId));
+
+                if (upsertResponse.StatusCode == System.Net.HttpStatusCode.OK ||
+                    upsertResponse.StatusCode == System.Net.HttpStatusCode.Created)
+                {
+                    return new OperationResult<T>(ResultCode.Success, upsertResponse.Resource, null);
+                }
+                else
+                {
+                    return new OperationResult<T>(ResultCode.GenericError, upsertResponse.Resource, null);
+                }
+            }
+            catch (CosmosException)
+            {
+                return new OperationResult<T>(ResultCode.GenericError, null, null);
+            }
+        }
+
         public static async Task<OperationResult<T>> Delete<T>(T entity) where T : CosmosDocument
         {
             try
@@ -118,6 +142,29 @@ namespace Boltzenberg.Functions.Storage
             catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.PreconditionFailed)
             {
                 return new OperationResult<T>(ResultCode.PreconditionFailed, null, null);
+            }
+        }
+
+        public static async Task<OperationResult<T>> DeleteUnconditionally<T>(string appId, string docId) where T : CosmosDocument
+        {
+            try
+            {
+                ItemResponse<T> deleteResponse = await container.DeleteItemAsync<T>(
+                    docId,
+                    new PartitionKey(appId));
+
+                if (deleteResponse.StatusCode == System.Net.HttpStatusCode.NoContent)
+                {
+                    return new OperationResult<T>(ResultCode.Success, null, null);
+                }
+                else
+                {
+                    return new OperationResult<T>(ResultCode.GenericError, null, null);
+                }
+            }
+            catch (CosmosException)
+            {
+                return new OperationResult<T>(ResultCode.GenericError, null, null);
             }
         }
 

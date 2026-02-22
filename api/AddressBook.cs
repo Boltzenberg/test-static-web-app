@@ -24,7 +24,7 @@ public class AddressBook
     {
         try
         {
-            if (!AuthZChecker.IsAuthorizedForAddressBook(req))
+            if (!await AuthZChecker.IsAuthorizedForAddressBook(req))
             {
                 return new UnauthorizedObjectResult("No auth header found");
             }
@@ -58,7 +58,7 @@ public class AddressBook
     {
         try
         {
-            if (!AuthZChecker.IsAuthorizedForAddressBook(req))
+            if (!await AuthZChecker.IsAuthorizedForAddressBook(req))
             {
                 return new UnauthorizedObjectResult("No auth header found");
             }
@@ -97,7 +97,7 @@ public class AddressBook
     {
         try
         {
-            if (!AuthZChecker.IsAuthorizedForAddressBook(req))
+            if (!await AuthZChecker.IsAuthorizedForAddressBook(req))
             {
                 return new UnauthorizedObjectResult("No auth header found");
             }
@@ -136,7 +136,7 @@ public class AddressBook
     {
         try
         {
-            if (!AuthZChecker.IsAuthorizedForAddressBook(req))
+            if (!await AuthZChecker.IsAuthorizedForAddressBook(req))
             {
                 return new UnauthorizedObjectResult("No auth header found");
             }
@@ -162,7 +162,7 @@ public class AddressBook
     {
         try
         {
-            if (!AuthZChecker.IsAuthorizedForAddressBook(req))
+            if (!await AuthZChecker.IsAuthorizedForAddressBook(req))
             {
                 return new UnauthorizedObjectResult("No auth header found");
             }
