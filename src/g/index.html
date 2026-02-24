@@ -5,29 +5,19 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Grocery List</title>
+  <link rel="stylesheet" href="/shared.css">
 
   <style>
-    * {
-      font-family: Arial, Helvetica, sans-serif;
-    }
-
-    html, body {
-      margin: 0;
-      border: 0;
-      padding: 0;
-      background-color: #fff;
-      font-size: 18px;
-    }
-
     main {
+      width: 100%;
+      max-width: 600px;
       margin: auto;
-      width: 50%;
-      padding: 20px;
+      padding: 16px;
     }
 
     main > h1 {
       text-align: center;
-      font-size: 3.5em;
+      font-size: clamp(2rem, 8vw, 3.5em);
     }
 
     /* Hide the form until the initial load completes */
@@ -36,27 +26,46 @@
       padding: 5px;
       line-height: 1.6;
     }
+
+    #loadingIndicator {
+      text-align: center;
+      padding: 20px;
+    }
   </style>
 </head>
 
 <body>
-  <form id="gForm">
-    <label for="single-add">Add an item:</label><br>
-    <input type="text" id="single-add" name="single-add">
-    <input type="submit" value="Update"><br>
+  <main>
+    <h1>Grocery List</h1>
 
-    <div id="checkboxContainer"></div>
-    <input type="submit" value="Update"><br>
-    <br>
-    <label for="multi-add">Add Multiple Items:</label><br>
-    <textarea id="multi-add" name="multi-add" rows="4" cols="50"></textarea><br>
-    <input type="submit" value="Update"><br>
-  </form>
+    <div id="loadingIndicator">
+      <span class="loading"></span> Loading&hellip;
+    </div>
 
-  <div id="results"></div><br>
+    <div id="status" class="status"></div>
+
+    <form id="gForm">
+      <label for="multi-add">Add items (one per line):</label><br>
+      <textarea id="multi-add" name="multi-add" rows="4" style="width:100%;"></textarea>
+      <br><br>
+
+      <hr style="border: none; border-top: 1px solid #ddd; margin: 12px 0;">
+
+      <div id="checkboxContainer"></div>
+
+      <br>
+      <button type="submit">Update</button>
+    </form>
+  </main>
 
   <script>
     let LIST_ID = "Test";
+
+    function showStatus(msg, isError) {
+      const s = document.getElementById('status');
+      s.textContent = msg;
+      s.className = msg ? ('status ' + (isError ? 'error' : '')) : 'status';
+    }
 
     function updateCheckboxes(groceryListItems) {
       const container = document.getElementById('checkboxContainer');
@@ -65,100 +74,93 @@
         container.removeChild(container.firstChild);
       }
 
-      groceryListItems.sort((a, b) =>
-        a.Item.toLowerCase().localeCompare(b.Item.toLowerCase())
-      );
+      if (groceryListItems.length === 0) {
+        const empty = document.createElement('p');
+        empty.className = 'empty-state';
+        empty.textContent = 'Your list is empty \u2014 add something above!';
+        container.appendChild(empty);
+      } else {
+        groceryListItems.sort((a, b) =>
+          a.Item.toLowerCase().localeCompare(b.Item.toLowerCase())
+        );
 
-      groceryListItems.forEach(element => {
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.id = 'checkbox' + container.getElementsByTagName('input').length;
-        checkbox.dataset.json = JSON.stringify(element);
+        groceryListItems.forEach((element, index) => {
+          const wrapper = document.createElement('div');
+          wrapper.className = 'checkbox-item';
 
-        const label = document.createElement('label');
-        label.htmlFor = checkbox.id;
-        label.appendChild(document.createTextNode(element.Item));
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.id = 'checkbox' + index;
+          checkbox.dataset.json = JSON.stringify(element);
 
-        container.appendChild(checkbox);
-        container.appendChild(label);
-        container.appendChild(document.createElement('br'));
-      });
+          const label = document.createElement('label');
+          label.htmlFor = checkbox.id;
+          label.textContent = element.Item;
+
+          wrapper.appendChild(checkbox);
+          wrapper.appendChild(label);
+          container.appendChild(wrapper);
+        });
+      }
 
       document.getElementById('multi-add').value = '';
-      const singleAdd = document.getElementById('single-add');
-      singleAdd.value = '';
-      singleAdd.focus();
+      document.getElementById('multi-add').focus();
     }
 
     document.getElementById('gForm').addEventListener('submit', function(event) {
       event.preventDefault();
+      showStatus('', false);
 
       const formData = new FormData(event.target);
-      const singleAdd = formData.get('single-add');
       const multiAdd = formData.get('multi-add');
 
       let toAdd = [];
-      if (singleAdd) {
-        toAdd.push({ Item: singleAdd });
-      }
-
-      if (multiAdd) {
-        const lines = multiAdd.split(/\r?\n/);
-        lines.forEach(line => {
-          toAdd.push({ Item: line });
+      if (multiAdd && multiAdd.trim()) {
+        multiAdd.split(/\r?\n/).forEach(line => {
+          if (line.trim()) toAdd.push({ Item: line.trim() });
         });
       }
 
       let toRemove = [];
       const container = document.getElementById('checkboxContainer');
-      Array.from(container.getElementsByTagName('input')).forEach(element => {
-        if (element.checked) {
-          toRemove.push(JSON.parse(element.dataset.json));
+      Array.from(container.querySelectorAll('input[type="checkbox"]')).forEach(el => {
+        if (el.checked) {
+          toRemove.push(JSON.parse(el.dataset.json));
         }
       });
 
-      let payload = {
-        ToAdd: toAdd,
-        ToRemove: toRemove
-      };
-
       fetch('/api/UpdateGroceryList', {
-        method: "POST",
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'X-List-ID': LIST_ID
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ ToAdd: toAdd, ToRemove: toRemove })
       })
       .then(response => response.json())
       .then(data => updateCheckboxes(data))
-      .catch(error => alert(error));
+      .catch(error => showStatus('Error updating list: ' + error, true));
     });
 
     (async function() {
-      const msgdiv = document.getElementById('results');
-      msgdiv.innerText = "Loading...";
+      const loadingDiv = document.getElementById('loadingIndicator');
 
       try {
         const response = await fetch('/api/UpdateGroceryList', {
-          method: "GET",
-          headers: {
-            'X-List-ID': LIST_ID
-          }
+          method: 'GET',
+          headers: { 'X-List-ID': LIST_ID }
         });
         if (response.ok) {
           const data = await response.json();
           updateCheckboxes(data);
         } else {
-          alert(response.statusText);
+          showStatus('Failed to load list: ' + response.statusText, true);
         }
       } catch (error) {
-        alert("Exception: " + error);
+        showStatus('Exception loading list: ' + error, true);
       }
 
-      msgdiv.innerText = "";
-
-      // Reveal the form now that loading is done
+      loadingDiv.style.display = 'none';
       document.getElementById('gForm').style.display = 'block';
     }());
   </script>

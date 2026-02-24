@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grocery List</title>
+
+  <style>
+    * {
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    html, body {
+      margin: 0;
+      border: 0;
+      padding: 0;
+      background-color: #fff;
+      font-size: 18px;
+    }
+
+    main {
+      margin: auto;
+      width: 50%;
+      padding: 20px;
+    }
+
+    main > h1 {
+      text-align: center;
+      font-size: 3.5em;
+    }
+
+    /* Hide the form until the initial load completes */
+    #gForm {
+      display: none;
+      padding: 5px;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+
+<body>
+  <form id="gForm">
+    <label for="single-add">Add an item:</label><br>
+    <input type="text" id="single-add" name="single-add">
+    <input type="submit" value="Update"><br>
+
+    <div id="checkboxContainer"></div>
+    <input type="submit" value="Update"><br>
+    <br>
+    <label for="multi-add">Add Multiple Items:</label><br>
+    <textarea id="multi-add" name="multi-add" rows="4" cols="50"></textarea><br>
+    <input type="submit" value="Update"><br>
+  </form>
+
+  <div id="results"></div><br>
+
+  <script>
+    let LIST_ID = "Test";
+
+    function updateCheckboxes(groceryListItems) {
+      const container = document.getElementById('checkboxContainer');
+
+      while (container.firstChild) {
+        container.removeChild(container.firstChild);
+      }
+
+      groceryListItems.sort((a, b) =>
+        a.Item.toLowerCase().localeCompare(b.Item.toLowerCase())
+      );
+
+      groceryListItems.forEach(element => {
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = 'checkbox' + container.getElementsByTagName('input').length;
+        checkbox.dataset.json = JSON.stringify(element);
+
+        const label = document.createElement('label');
+        label.htmlFor = checkbox.id;
+        label.appendChild(document.createTextNode(element.Item));
+
+        container.appendChild(checkbox);
+        container.appendChild(label);
+        container.appendChild(document.createElement('br'));
+      });
+
+      document.getElementById('multi-add').value = '';
+      const singleAdd = document.getElementById('single-add');
+      singleAdd.value = '';
+      singleAdd.focus();
+    }
+
+    document.getElementById('gForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      const formData = new FormData(event.target);
+      const singleAdd = formData.get('single-add');
+      const multiAdd = formData.get('multi-add');
+
+      let toAdd = [];
+      if (singleAdd) {
+        toAdd.push({ Item: singleAdd });
+      }
+
+      if (multiAdd) {
+        const lines = multiAdd.split(/\r?\n/);
+        lines.forEach(line => {
+          toAdd.push({ Item: line });
+        });
+      }
+
+      let toRemove = [];
+      const container = document.getElementById('checkboxContainer');
+      Array.from(container.getElementsByTagName('input')).forEach(element => {
+        if (element.checked) {
+          toRemove.push(JSON.parse(element.dataset.json));
+        }
+      });
+
+      let payload = {
+        ToAdd: toAdd,
+        ToRemove: toRemove
+      };
+
+      fetch('/api/UpdateGroceryList', {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json',
+          'X-List-ID': LIST_ID
+        },
+        body: JSON.stringify(payload)
+      })
+      .then(response => response.json())
+      .then(data => updateCheckboxes(data))
+      .catch(error => alert(error));
+    });
+
+    (async function() {
+      const msgdiv = document.getElementById('results');
+      msgdiv.innerText = "Loading...";
+
+      try {
+        const response = await fetch('/api/UpdateGroceryList', {
+          method: "GET",
+          headers: {
+            'X-List-ID': LIST_ID
+          }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          updateCheckboxes(data);
+        } else {
+          alert(response.statusText);
+        }
+      } catch (error) {
+        alert("Exception: " + error);
+      }
+
+      msgdiv.innerText = "";
+
+      // Reveal the form now that loading is done
+      document.getElementById('gForm').style.display = 'block';
+    }());
+  </script>
+</body>
+
+</html>

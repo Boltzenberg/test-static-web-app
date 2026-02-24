@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Address Book</title>
+  <style>
+    body { font-size: 18px; font-family: sans-serif; line-height: 1.4; padding: 20px; }
+    #status { margin-top: 10px; color: #666; }
+    #addressDisplay { margin-top: 20px; font-size: 1.1em; }
+    #authContainer { margin-bottom: 20px; }
+    button {
+      padding: 8px 16px;
+      background: #0067c5;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #004f9e;
+    }
+  </style>
+</head>
+<body>
+  <h2 id="pageTitle" style="display:none;">Select an Address Book Entry</h2>
+
+  <select id="addressDropdown" style="display:none;">
+    <option value="">Loading...</option>
+  </select>
+
+  <div id="addressDisplay" style="min-height: 150px;"></div>
+  <div id="linksDiv" style="margin-top: 20px;"></div>
+  <div id="holidayListAnchorsDiv">
+    <a href="#" onclick="displayHolidayCardPreview(); return false;">View Holiday Card List</a><br>
+    <a href="#" onclick="exportHolidayCardCsv(); return false;">Export Holiday Card List as Mail Merge</a>
+  </div>
+
+  <div id="holidayCardDiv"></div>
+  <div id="status"></div>
+  <div id="authContainer"></div>
+
+  <script>
+    let addressEntries = [];
+
+    async function checkAuth() {
+      const authDiv = document.getElementById('authContainer');
+
+      try {
+        const res = await fetch('/.auth/me');
+        const data = await res.json();
+
+        const user = data?.clientPrincipal;
+
+        if (!user) {
+          authDiv.innerHTML = `
+            <p>You must sign in to view your address book.</p>
+            <button id="signInBtn">Sign in with Microsoft</button>
+          `;
+          document.getElementById('signInBtn').onclick = () => {
+            const returnUrl = encodeURIComponent(window.location.pathname);
+            window.location.href = '/.auth/login/aad?post_login_redirect_uri=' + returnUrl;
+          };
+          return false;
+        }
+
+        authDiv.innerHTML = `
+          <p>Signed in as <strong>${user.userDetails}</strong></p>
+          <button id="signOutBtn">Sign out</button>
+        `;
+        document.getElementById('signOutBtn').onclick = () => {
+          const returnUrl = encodeURIComponent(window.location.pathname);
+          window.location.href = '/.auth/logout?post_logout_redirect_uri=' + returnUrl;
+        };
+
+        return true;
+
+      } catch (err) {
+        authDiv.textContent = "Error checking authentication.";
+        console.error(err);
+        return false;
+      }
+    }
+
+    async function loadAddressBook() {
+      const dropdown = document.getElementById('addressDropdown');
+      const status = document.getElementById('status');
+
+      try {
+        status.textContent = "Loading address book entries…";
+
+        const response = await fetch('/api/AddressBookReadAll');
+        if (!response.ok) throw new Error(`API returned ${response.status}`);
+
+        addressEntries = await response.json();
+        addressEntries.sort((a, b) => {
+          const lastA = (a.LastName || "").toLowerCase();
+          const lastB = (b.LastName || "").toLowerCase();
+          const cmp = lastA.localeCompare(lastB);
+          if (cmp !== 0) return cmp;
+
+          const firstA = (a.FirstName || "").toLowerCase();
+          const firstB = (b.FirstName || "").toLowerCase();
+          return firstA.localeCompare(firstB);
+        });
+
+        dropdown.innerHTML = "";
+
+        addressEntries.forEach(entry => {
+          const option = document.createElement('option');
+
+          const displayName = `${entry.LastName ?? ''}, ${entry.FirstName ?? ''}`.trim() ||
+            "(Unnamed Entry)";
+
+          option.value = entry.id;
+          option.textContent = displayName;
+
+          dropdown.appendChild(option);
+        });
+
+        // Clear the status field and show the first entry
+        status.textContent = "";
+        if (addressEntries.length > 0) {
+          const params = new URLSearchParams(window.location.search);
+          const id = params.get("id");
+
+          if (!id) {
+            dropdown.value = addressEntries[0].id;
+            showAddress(addressEntries[0]);
+          } else {
+            dropdown.value = id;
+            showAddress(addressEntries.find(x => x.id === id));
+          }
+        }
+      }
+      catch (err) {
+        status.textContent = "Failed to load address book entries.";
+        console.error(err);
+        dropdown.innerHTML = "<option>Error loading entries</option>";
+      }
+    }
+
+    function googleMapsUrl(entry) {
+      const address = `${entry.Street} ${entry.City}, ${entry.State} ${entry.ZipCode}`;
+      const encoded = encodeURIComponent(address);
+      return `https://www.google.com/maps/search/?api=1&query=${encoded}`;
+    }
+
+
+    function showAddress(entry) {
+      const addressDisplayDiv = document.getElementById('addressDisplay');
+      const linksDiv = document.getElementById('linksDiv');
+
+      if (!entry) {
+        addressDisplayDiv.textContent = "";
+        return;
+      }
+
+      const addressLines = [
+        entry.MailingName || `${entry.FirstName ?? ''} ${entry.LastName ?? ''}`.trim(),
+        entry.Street,
+        entry.Apartment,
+        `${entry.City ?? ''}, ${entry.State ?? ''} ${entry.ZipCode ?? ''}`.trim(),
+        `Phone Number: ${entry.PhoneNumber}`,
+        `Holiday Card: ${entry.HolidayCard}`
+      ].filter(x => x);
+
+      addressDisplayDiv.innerHTML = addressLines.join("<br>");
+
+      const linksLines = [
+        `<a href="/old/addressbook/edit.html?id=${encodeURIComponent(entry.id)}">Edit this entry</a>`,
+        `<a href="/old/addressbook/add.html">Add new entry</a>`,
+        `<a href="${googleMapsUrl(entry)}">Map it!</a>`
+      ];
+      linksDiv.innerHTML = linksLines.join("<br>");
+    }
+
+    function exportHolidayCardCsv() {
+      // 1. Filter entries with HolidayCard values
+      const filtered = addressEntries.filter(e =>
+        e.HolidayCard !== null &&
+        e.HolidayCard !== undefined &&
+        e.HolidayCard !== ""
+      );
+
+      // 2. Build CSV header
+      const rows = [
+        ["MailingName", "Street", "Apartment", "City", "State", "ZipCode"]
+      ];
+
+      // 3. Add rows
+      for (const e of filtered) {
+        rows.push([
+          e.MailingName || "",
+          e.Street || "",
+          e.Apartment || "",
+          e.City || "",
+          e.State || "",
+          e.ZipCode || ""
+        ]);
+      }
+
+      // 4. Convert to CSV with proper escaping
+      const csv = rows
+        .map(r => r.map(v => {
+          if (v.includes(",") || v.includes("\"")) {
+            return `"${v.replace(/"/g, '""')}"`;
+          }
+          return v;
+        }).join(","))
+        .join("\n");
+
+      // 5. Trigger download
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "HolidayCardExport.csv";
+      a.click();
+
+      URL.revokeObjectURL(url);
+    }
+
+    function displayHolidayCardPreview() {
+      const container = document.getElementById("holidayCardDiv");
+      container.innerHTML = ""; // clear previous content
+
+      // Filter entries with HolidayCard values
+      const filtered = addressEntries.filter(e =>
+        e.HolidayCard !== null &&
+        e.HolidayCard !== undefined &&
+        e.HolidayCard !== ""
+      );
+
+      const total = filtered.length;
+
+      // Heading
+      const header = document.createElement("h3");
+      header.textContent = `Holiday Cards (${total})`;
+      container.appendChild(header);
+
+      if (total === 0) {
+        const empty = document.createElement("p");
+        empty.textContent = "No holiday card entries found.";
+        container.appendChild(empty);
+        return;
+      }
+
+      // List of entries
+      const list = document.createElement("ul");
+
+      for (const entry of filtered) {
+        const li = document.createElement("li");
+
+        const link = document.createElement("a");
+        link.href = `/old/addressbook/edit.html?id=${entry.id}`;
+        link.textContent = entry.MailingName || "(Unnamed Entry)";
+
+        li.appendChild(link);
+        list.appendChild(li);
+      }
+
+      container.appendChild(list);
+    }
+
+    document.getElementById('addressDropdown').addEventListener('change', (e) => {
+      const selectedId = e.target.value;
+      const entry = addressEntries.find(x => x.id === selectedId);
+      showAddress(entry);
+    });
+
+    (async function init() {
+      const isAuthed = await checkAuth();
+      if (!isAuthed) return;
+
+      document.getElementById('pageTitle').style.display = 'block';
+      document.getElementById('addressDropdown').style.display = 'inline-block';
+
+      await loadAddressBook();
+    })();
+  </script>
+
+</body>
+</html>

@@ -43,6 +43,76 @@ The `shared.css` link in each HTML file will be `<link rel="stylesheet" href="/c
 
 ---
 
+## Promotion Strategy: Replace Originals with Improved Pages
+
+Once the improved pages in `src/claude/` are approved, promote them to replace the originals. The originals are archived rather than deleted so they can be recovered if needed.
+
+### Target Directory Structure
+
+```
+src/
+├── old/
+│   ├── g/
+│   │   └── index.html           ← archived original grocery list
+│   └── addressbook/
+│       ├── index.html           ← archived original address book main view
+│       ├── add.html             ← archived original add entry
+│       └── edit.html            ← archived original edit entry
+├── shared.css                   ← moved from src/claude/shared.css
+├── g/
+│   └── index.html               ← promoted improved grocery list
+└── addressbook/
+    ├── index.html               ← promoted improved address book main view
+    ├── add.html                 ← promoted improved add entry
+    └── edit.html                ← promoted improved edit entry
+```
+
+### Steps
+
+1. Move `src/g/` → `src/old/g/`
+2. Move `src/addressbook/` → `src/old/addressbook/`
+3. Update internal links in the archived originals (see table below).
+4. Move `src/claude/g/` → `src/g/`
+5. Move `src/claude/addressbook/` → `src/addressbook/`
+6. Move `src/claude/shared.css` → `src/shared.css`
+7. Update internal links and stylesheet reference in the promoted files (see table below).
+8. Delete the now-empty `src/claude/` directory.
+
+### Link Updates in Archived Originals (`src/old/addressbook/`)
+
+After being moved to `src/old/`, the original address book pages contain `/addressbook/...` links that now point at the new improved pages instead of each other. Update them to stay self-contained within `src/old/`:
+
+| File | Old value | New value |
+|------|-----------|-----------|
+| `index.html` | `href="/addressbook/edit.html?id=..."` | `href="/old/addressbook/edit.html?id=..."` |
+| `index.html` | `href="/addressbook/add.html"` | `href="/old/addressbook/add.html"` |
+| `add.html` | `href="/addressbook/index.html"` | `href="/old/addressbook/index.html"` |
+| `add.html` | `window.location.href = "/addressbook/edit.html?id=..."` | `window.location.href = "/old/addressbook/edit.html?id=..."` |
+| `edit.html` | `href="/addressbook/index.html?id=..."` | `href="/old/addressbook/index.html?id=..."` |
+| `edit.html` | `window.location.href = "/addressbook/index.html"` | `window.location.href = "/old/addressbook/index.html"` |
+
+`src/old/g/index.html` has no internal navigation links and requires no link updates.
+
+### Link Updates in Promoted Files (`src/g/`, `src/addressbook/`)
+
+Moving the improved pages from `src/claude/` up to `src/` changes their URL paths, so all internal links and the stylesheet reference must be updated:
+
+| File(s) | Old value (while in `src/claude/`) | New value (after promotion to `src/`) |
+|---------|------------------------------------|---------------------------------------|
+| All four pages | `href="/claude/shared.css"` | `href="/shared.css"` |
+| `addressbook/index.html` | `href="/claude/addressbook/edit.html?id=..."` | `href="/addressbook/edit.html?id=..."` |
+| `addressbook/index.html` | `href="/claude/addressbook/add.html"` | `href="/addressbook/add.html"` |
+| `addressbook/index.html` | `href="/claude/addressbook/edit.html?id=..."` (holiday card list) | `href="/addressbook/edit.html?id=..."` |
+| `addressbook/add.html` | `href="/claude/addressbook/index.html"` | `href="/addressbook/index.html"` |
+| `addressbook/add.html` | `window.location.href = "/claude/addressbook/edit.html?id=..."` | `window.location.href = "/addressbook/edit.html?id=..."` |
+| `addressbook/edit.html` | `href="/claude/addressbook/index.html?id=..."` (back link) | `href="/addressbook/index.html?id=..."` |
+| `addressbook/edit.html` | `href="/claude/addressbook/index.html?id=..."` (after save) | `href="/addressbook/index.html?id=..."` |
+| `addressbook/edit.html` | `window.location.href = "/claude/addressbook/index.html"` | `window.location.href = "/addressbook/index.html"` |
+
+API paths (`/api/...`) and auth paths (`/.auth/...`) do **not** change in either set of files.
+
+---
+
 ## Current State Summary
 
 Both features use plain HTML with inline `<style>` blocks, vanilla JavaScript, and no external UI libraries. They work correctly but have a number of usability, layout, and visual polish issues described below.
