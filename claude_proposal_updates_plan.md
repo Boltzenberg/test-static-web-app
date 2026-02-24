@@ -71,19 +71,25 @@ Both features use plain HTML with inline `<style>` blocks, vanilla JavaScript, a
 **No Loading Indicator**
 - The initial load shows a plain "Loading..." text string in a `<div>` below the hidden form. There is no spinner or visual indicator of progress.
 
+**Redundant Single-Line Input**
+- The single-item text field duplicates the textarea: any item typed there could equally be typed as a single line in the multi-add textarea. Maintaining two separate add inputs adds visual noise and splits the user's attention without providing additional capability.
+
+**Not Mobile-Responsive**
+- `main { width: 50%; }` is fine on a wide desktop but leaves a narrow usable column on phones — a 390px-wide phone gets only ~195px of content width, which causes most text and the textarea to wrap awkwardly. The 3.5em `<h1>` (~63px) also overflows on small screens. There is no media query or fluid sizing to adapt the layout for narrow viewports.
+
 **Bulk-Add Field Order**
-- "Add Multiple Items" textarea appears after the checkbox list. This makes the page feel like two separate unrelated sections: add → list → add again. Grouping both add inputs together above the list would be more natural.
+- The multi-add textarea appears after the checkbox list. This makes the page feel like two separate unrelated sections: add → list → add again. Moving it above the list creates a cleaner top-to-bottom flow.
 
 ### Proposed Improvements
 
-1. **Add `<main>` wrapper and visible `<h1>` heading.**
-   Wrap the form in `<main>` so the existing CSS centering rules take effect. Add an `<h1>Grocery List</h1>` inside `<main>` so the page has a visible title.
+1. **Add `<main>` wrapper and visible `<h1>` heading; make the layout responsive.**
+   Wrap the form in `<main>` and add an `<h1>Grocery List</h1>`. Replace the fixed `width: 50%` with `width: 100%; max-width: 600px; margin: auto; padding: 16px;` so the page uses the full screen width on phones and caps to a readable column on wider screens. Scale the heading with `font-size: clamp(2rem, 8vw, 3.5em)` so it fits any viewport without wrapping. Set the textarea to `width: 100%` (removing the hardcoded `cols` attribute) so it fills the available column width on all screen sizes.
 
 2. **Consolidate to a single "Update" button.**
    Remove the two redundant buttons. Keep only one "Update" button at the bottom of the form. This eliminates confusion about which button to use.
 
-3. **Group both add-input sections above the checkbox list.**
-   Reorder the layout: single-item text field first, multi-item textarea second, then the checkbox list of current items, then the single Update button. This creates a clear top-to-bottom flow: "add things" → "remove things" → "save."
+3. **Remove the single-line input; use only the textarea for adding items.**
+   Drop the "Add an item" text field entirely. The multi-item textarea handles both single and multiple items — users can type one item or many. Simplify the layout to: textarea (above the divider) → checkbox list → single Update button. This creates a clear top-to-bottom flow: "add things" → "remove things" → "save."
 
 4. **Visual strikethrough on checked items.**
    Add a CSS rule (via a `change` event listener on each checkbox) that applies `text-decoration: line-through; color: #999;` to the label of any checked item. This gives immediate visual feedback that the item is queued for removal before the user hits Update.
@@ -268,7 +274,9 @@ Both features specify `<meta name="viewport" content="width=device-width, initia
 | Grocery List | No visual feedback on checked items | CSS strikethrough via JS event |
 | Grocery List | No empty-state message | Render text when list is empty |
 | Grocery List | `alert()` for errors | Inline `#status` div |
-| Grocery List | Add inputs below checkbox list | Reorder: adds → list → button |
+| Grocery List | Not mobile-responsive (`width: 50%`, large h1, fixed cols) | `max-width: 600px`, `clamp()` heading, `width: 100%` textarea |
+| Grocery List | Redundant single-line add input | Remove it; textarea handles single items too |
+| Grocery List | Textarea below checkbox list | Reorder: textarea → list → button |
 | Address Book (all) | Auth UI at bottom | Move `#authContainer` to top |
 | Address Book (all) | Heading hidden until auth resolves | Show heading immediately |
 | Address Book index | `<br>`-separated plain address | Styled address card `<div>` |
