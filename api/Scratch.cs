@@ -36,7 +36,7 @@ public class Scratch
     [Function("SendTelegram")]
     public static async Task<IActionResult> SendTelegram([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest req)
     {
-        await TelegramLogger.InfoAsync("Send Telegram API invoked!");
+        await Telegram.LogInfoAsync("Send Telegram API invoked!");
         return new OkObjectResult("Telegram Message Sent!");
     }
 }

@@ -6,51 +6,33 @@ using System.Threading.Tasks;
 
 namespace Boltzenberg.Functions.Comms
 {
-    public static class TelegramLogger
+    public static class Telegram
     {
         private static readonly HttpClient _http = new HttpClient();
 
         private static readonly string? Token = Environment.GetEnvironmentVariable("BOLTZENBERG_BOT_TOKEN");
 
-        private static readonly string? ChatId = "-1003401427386";
+        private static readonly string LoggingChatId = "-1003401427386";
 
-        public enum Level
+        private enum Level
         {
             Info,
             Warn,
             Error
         }
 
-        public static async Task LogAsync(Level level, string message, object? meta = null)
+        public static async Task SendAsync(string chatId, string message)
         {
-            if (string.IsNullOrWhiteSpace(Token) || string.IsNullOrWhiteSpace(ChatId))
+            if (string.IsNullOrWhiteSpace(Token) || string.IsNullOrWhiteSpace(chatId))
             {
                 Console.WriteLine("Telegram logging skipped: missing TELEGRAM_TOKEN or TELEGRAM_CHANNEL_ID");
                 return;
             }
 
-            var timestamp = DateTime.UtcNow.ToString("o");
-
-            var sb = new StringBuilder();
-            sb.AppendLine($"📝 *{level}* — `{timestamp}`");
-            sb.AppendLine(message);
-
-            if (meta != null)
-            {
-                string json = JsonSerializer.Serialize(
-                    meta,
-                    new JsonSerializerOptions { WriteIndented = true }
-                );
-
-                sb.AppendLine("```json");
-                sb.AppendLine(json);
-                sb.AppendLine("```");
-            }
-
             var payload = new
             {
-                chat_id = ChatId,
-                text = sb.ToString(),
+                chat_id = chatId,
+                text = message,
                 parse_mode = "Markdown"
             };
 
@@ -70,17 +52,40 @@ namespace Boltzenberg.Functions.Comms
             catch (Exception ex)
             {
                 // Avoid recursive logging loops
-                Console.WriteLine($"Telegram logging failed: {ex.Message}");
+                Console.WriteLine($"Telegram send failed: {ex.Message}");
             }
         }
 
-        public static Task InfoAsync(string message, object? meta = null)
+        private static async Task LogAsync(Level level, string message, object? meta = null)
+        {
+            var timestamp = DateTime.UtcNow.ToString("o");
+
+            var sb = new StringBuilder();
+            sb.AppendLine($"📝 *{level}* — `{timestamp}`");
+            sb.AppendLine(message);
+
+            if (meta != null)
+            {
+                string json = JsonSerializer.Serialize(
+                    meta,
+                    new JsonSerializerOptions { WriteIndented = true }
+                );
+
+                sb.AppendLine("```json");
+                sb.AppendLine(json);
+                sb.AppendLine("```");
+            }
+
+            await SendAsync(LoggingChatId, sb.ToString());
+        }
+
+        public static Task LogInfoAsync(string message, object? meta = null)
             => LogAsync(Level.Info, message, meta);
 
-        public static Task WarnAsync(string message, object? meta = null)
+        public static Task LogWarnAsync(string message, object? meta = null)
             => LogAsync(Level.Warn, message, meta);
 
-        public static Task ErrorAsync(string message, object? meta = null)
+        public static Task LogErrorAsync(string message, object? meta = null)
             => LogAsync(Level.Error, message, meta);
     }
 }

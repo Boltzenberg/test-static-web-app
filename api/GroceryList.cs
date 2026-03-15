@@ -82,7 +82,7 @@ namespace Boltzenberg.Functions
 
                             result = await JsonStore.Update<GroceryListDB>(result.Entity);
                         } while (result.Code == ResultCode.PreconditionFailed);
-                        await TelegramLogger.InfoAsync(sbLog.ToString());
+                        await Telegram.LogInfoAsync(sbLog.ToString());
                     }
                 }
             }
