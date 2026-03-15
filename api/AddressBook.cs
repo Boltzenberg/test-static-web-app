@@ -2,6 +2,7 @@ using System.Net;
 using System.Text.Json;
 using Boltzenberg.Functions.DataModels.AddressBook;
 using Boltzenberg.Functions.DataModels.Auth;
+using Boltzenberg.Functions.Logging;
 using Boltzenberg.Functions.Storage;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -22,35 +23,53 @@ public class AddressBook
     [Function("AddressBookAddEntry")]
     public async Task<IActionResult> AddressBookAddEntry([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequest req)
     {
-        try
+        return await LogBuffer.Wrap("AddressBookAddEntry", ref, DoAddressBookAddEntry);
+    }
+
+    private async Task<IActionResult> DoAddressBookAddEntry(HttpRequest req, LogBuffer log)
+    {
+        if (!await AuthZChecker.IsAuthorizedForAddressBook(req))
         {
-            if (!await AuthZChecker.IsAuthorizedForAddressBook(req))
+            log.Error("Attempted unauthorized access");
+            return new UnauthorizedObjectResult("No auth header found");
+        }
+
+        AddressBookEntry? entry = null;
+        string body = await new StreamReader(req.Body).ReadToEndAsync();
+        if (!string.IsNullOrEmpty(body))
+        {
+            entry = JsonSerializer.Deserialize<AddressBookEntry>(body);
+            if (entry == null)
             {
-                return new UnauthorizedObjectResult("No auth header found");
+                log.Error("Failed to deserialize request body '{0}'", body);
+                return new BadRequestObjectResult("Failed to deserialize the entry to add");
             }
 
-            AddressBookEntry? entry = null;
-            string body = await new StreamReader(req.Body).ReadToEndAsync();
-            if (!string.IsNullOrEmpty(body))
+            entry.id = Guid.NewGuid().ToString();
+            var result = await JsonStore.Create(entry);
+            if (result != null)
             {
-                _logger.LogInformation("Request Body: " + body);
-                entry = JsonSerializer.Deserialize<AddressBookEntry>(body);
-                if (entry == null)
+                if (result.Entity != null && result.Code == ResultCode.Success)
                 {
-                    return new BadRequestObjectResult("Failed to deserialize the entry to add");
+                    log.Info("Created address book entry for '{0}'", entry.ToString());
+                    return new OkObjectResult(JsonSerializer.Serialize(result.Entity));
                 }
-
-                entry.id = Guid.NewGuid().ToString();
-                var result = await JsonStore.Create(entry);
-                return new OkObjectResult(JsonSerializer.Serialize(result.Entity));
+                else
+                {
+                    log.Error("Failed to create the address book entry: {0}", result.Code);
+                }
             }
-
-            return new BadRequestResult();
+            else
+            {
+                log.Error("Failed to create the address book entry with a null result");
+            }
         }
-        catch (Exception ex)
+        else
         {
-            return new OkObjectResult(ex.ToString());
+            log.Error("No request body");         
         }
+        
+        return new BadRequestResult();
     }
 
     [Function("AddressBookUpdateEntry")]
