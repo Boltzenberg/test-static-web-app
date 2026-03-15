@@ -1,3 +1,4 @@
+using Boltzenberg.Functions.Comms;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
@@ -30,5 +31,12 @@ public class Scratch
             ContentType = contentType,
             StatusCode = (int)upstream.StatusCode
         };
+    }
+
+    [Function("SendTelegram")]
+    public static async Task<IActionResult> SendTelegram([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest req)
+    {
+        await TelegramLogger.InfoAsync("Send Telegram API invoked!");
+        return new OkObjectResult("Telegram Message Sent!");
     }
 }

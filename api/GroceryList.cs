@@ -5,16 +5,15 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using Boltzenberg.Functions.DataModels.GroceryList;
 using Boltzenberg.Functions.Storage;
+using System.Text;
+using Boltzenberg.Functions.Comms;
 
 namespace Boltzenberg.Functions
 {
     public class GroceryList
     {
-        private readonly ILogger<GroceryList> _logger;
-
-        public GroceryList(ILogger<GroceryList> logger)
+        public GroceryList()
         {
-            _logger = logger;
         }
 
         [Function("CreateGroceryList")]
@@ -52,12 +51,13 @@ namespace Boltzenberg.Functions
                 string body = await new StreamReader(req.Body).ReadToEndAsync();
                 if (!string.IsNullOrEmpty(body))
                 {
-                    _logger.LogInformation("Request Body: " + body);
                     UpdateGroceryListPayload? reqBody = JsonSerializer.Deserialize<UpdateGroceryListPayload>(body);
                     if (reqBody != null)
                     {
+                        StringBuilder sbLog = new StringBuilder();
                         do
                         {
+                            sbLog.Clear();
                             result = await JsonStore.Read<GroceryListDB>(GroceryListDB.GroceryListAppId, listId);
                             if (result == null || result.Entity == null || result.Code == ResultCode.GenericError)
                             {
@@ -69,17 +69,20 @@ namespace Boltzenberg.Functions
                                 GroceryListItem? itemToRemove = result.Entity.Items.Where(i => i.Item == item.Item).FirstOrDefault();
                                 if (itemToRemove != null)
                                 {
+                                    sbLog.AppendLine("🔴 Grocery List Removing '" + itemToRemove + "'");
                                     result.Entity.Items.Remove(itemToRemove);
                                 }
                             }
 
                             foreach (GroceryListItem item in reqBody.ToAdd)
                             {
+                                sbLog.AppendLine("🟢 Grocery List Adding '" + item + "'");
                                 result.Entity.Items.Add(item);
                             }
 
                             result = await JsonStore.Update<GroceryListDB>(result.Entity);
                         } while (result.Code == ResultCode.PreconditionFailed);
+                        await TelegramLogger.InfoAsync(sbLog.ToString());
                     }
                 }
             }
