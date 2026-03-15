@@ -23,7 +23,7 @@ public class AddressBook
     [Function("AddressBookAddEntry")]
     public async Task<IActionResult> AddressBookAddEntry([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequest req)
     {
-        return await LogBuffer.Wrap("AddressBookAddEntry", ref, DoAddressBookAddEntry);
+        return await LogBuffer.Wrap("AddressBookAddEntry", req, DoAddressBookAddEntry);
     }
 
     private async Task<IActionResult> DoAddressBookAddEntry(HttpRequest req, LogBuffer log)
@@ -68,7 +68,7 @@ public class AddressBook
         {
             log.Error("No request body");         
         }
-        
+
         return new BadRequestResult();
     }
 
