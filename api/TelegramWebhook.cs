@@ -8,6 +8,7 @@ using Boltzenberg.Functions;
 using Boltzenberg.Functions.Comms;
 using Boltzenberg.Functions.DataModels.GroceryList;
 using Boltzenberg.Functions.DataModels.Telegram;
+using Boltzenberg.Functions.Logging;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 
@@ -51,10 +52,11 @@ public class TelegramWebhook
                     return response;
                 }
 
+                LogBuffer log = new LogBuffer("Webhook - /add");
                 string item = text.Substring(text.IndexOf(' ')).Trim();
                 UpdateGroceryListPayload payload = new UpdateGroceryListPayload();
                 payload.ToAdd.Add(new GroceryListItem(item));
-                var result = await GroceryList.DoUpdateGroceryList("Test", payload);
+                var result = await GroceryList.DoUpdateGroceryList("Test", payload, log);
                 if (result == null || result.Entity == null || result.Code != Boltzenberg.Functions.Storage.ResultCode.Success)
                 {
                     await Telegram.SendAsync(chatId, "❌ failed to update the grocery list!  Check the logs.");
@@ -69,6 +71,7 @@ public class TelegramWebhook
                     }
                     await Telegram.SendAsync(chatId, sb.ToString());
                 }
+                await log.Close();
             }
             else if (text.StartsWith("/remove "))
             {
@@ -79,10 +82,11 @@ public class TelegramWebhook
                     return response;
                 }
 
+                LogBuffer log = new LogBuffer("Webhook - /remove");
                 string item = text.Substring(text.IndexOf(' ')).Trim();
                 UpdateGroceryListPayload payload = new UpdateGroceryListPayload();
                 payload.ToRemove.Add(new GroceryListItem(item));
-                var result = await GroceryList.DoUpdateGroceryList("Test", payload);
+                var result = await GroceryList.DoUpdateGroceryList("Test", payload, log);
                 if (result == null || result.Entity == null || result.Code != Boltzenberg.Functions.Storage.ResultCode.Success)
                 {
                     await Telegram.SendAsync(chatId, "❌ failed to update the grocery list!  Check the logs.");
@@ -97,6 +101,7 @@ public class TelegramWebhook
                     }
                     await Telegram.SendAsync(chatId, sb.ToString());
                 }
+                await log.Close();
             }
             else
             {

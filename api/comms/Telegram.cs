@@ -56,6 +56,11 @@ namespace Boltzenberg.Functions.Comms
             }
         }
 
+        public static async Task LogAsync(string message)
+        {
+            await SendAsync(LoggingChatId, message);
+        }
+
         private static async Task LogAsync(Level level, string message, object? meta = null)
         {
             var timestamp = DateTime.UtcNow.ToString("o");
