@@ -7,6 +7,7 @@ using Boltzenberg.Functions.DataModels.GroceryList;
 using Boltzenberg.Functions.Storage;
 using System.Text;
 using Boltzenberg.Functions.Comms;
+using Azure;
 
 namespace Boltzenberg.Functions
 {
@@ -65,10 +66,12 @@ namespace Boltzenberg.Functions
 
             if (result == null || result.Entity == null)
             {
+                await Telegram.LogErrorAsync("Grocery List returning bad request result");
                 return new BadRequestResult();
             }
 
             string response = JsonSerializer.Serialize(result.Entity.Items);
+            await Telegram.LogInfoAsync("Grocery List returning '" + response + "'");
             return new OkObjectResult(response);
         }
 
