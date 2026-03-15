@@ -54,35 +54,7 @@ namespace Boltzenberg.Functions
                     UpdateGroceryListPayload? reqBody = JsonSerializer.Deserialize<UpdateGroceryListPayload>(body);
                     if (reqBody != null)
                     {
-                        StringBuilder sbLog = new StringBuilder();
-                        do
-                        {
-                            sbLog.Clear();
-                            result = await JsonStore.Read<GroceryListDB>(GroceryListDB.GroceryListAppId, listId);
-                            if (result == null || result.Entity == null || result.Code == ResultCode.GenericError)
-                            {
-                                return new BadRequestObjectResult("Failed to find the grocery list");
-                            }
-
-                            foreach (GroceryListItem item in reqBody.ToRemove)
-                            {
-                                GroceryListItem? itemToRemove = result.Entity.Items.Where(i => i.Item == item.Item).FirstOrDefault();
-                                if (itemToRemove != null)
-                                {
-                                    sbLog.AppendLine("🔴 Grocery List Removing '" + itemToRemove.Item + "'");
-                                    result.Entity.Items.Remove(itemToRemove);
-                                }
-                            }
-
-                            foreach (GroceryListItem item in reqBody.ToAdd)
-                            {
-                                sbLog.AppendLine("🟢 Grocery List Adding '" + item.Item + "'");
-                                result.Entity.Items.Add(item);
-                            }
-
-                            result = await JsonStore.Update<GroceryListDB>(result.Entity);
-                        } while (result.Code == ResultCode.PreconditionFailed);
-                        await Telegram.LogInfoAsync(sbLog.ToString());
+                        result = await UpdateGroceryList(listId, reqBody);
                     }
                 }
             }
@@ -98,6 +70,43 @@ namespace Boltzenberg.Functions
 
             string response = JsonSerializer.Serialize(result.Entity.Items);
             return new OkObjectResult(response);
+        }
+
+        public static async Task<OperationResult<GroceryListDB>?> UpdateGroceryList(string listId, UpdateGroceryListPayload payload)
+        {
+            StringBuilder sbLog = new StringBuilder();
+            OperationResult<GroceryListDB>? result = null;
+            do
+            {
+                sbLog.Clear();
+                result = await JsonStore.Read<GroceryListDB>(GroceryListDB.GroceryListAppId, listId);
+                if (result == null || result.Entity == null || result.Code == ResultCode.GenericError)
+                {
+                    await Telegram.LogErrorAsync("Failed to find the grocery list with id '" + listId + "'");
+                    return null;
+                }
+
+                foreach (GroceryListItem item in payload.ToRemove)
+                {
+                    GroceryListItem? itemToRemove = result.Entity.Items.Where(i => i.Item == item.Item).FirstOrDefault();
+                    if (itemToRemove != null)
+                    {
+                        sbLog.AppendLine("🔴 Grocery List Removing '" + itemToRemove.Item + "'");
+                        result.Entity.Items.Remove(itemToRemove);
+                    }
+                }
+
+                foreach (GroceryListItem item in payload.ToAdd)
+                {
+                    sbLog.AppendLine("🟢 Grocery List Adding '" + item.Item + "'");
+                    result.Entity.Items.Add(item);
+                }
+
+                result = await JsonStore.Update<GroceryListDB>(result.Entity);
+            } while (result.Code == ResultCode.PreconditionFailed);
+            await Telegram.LogInfoAsync(sbLog.ToString());
+
+            return result;
         }
     }
 }
