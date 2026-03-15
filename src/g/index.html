@@ -159,7 +159,7 @@
           showStatus('Failed to load list: ' + response.statusText, true);
         }
       } catch (error) {
-        showStatus('Exception loading list: ' + error, true);
+        showStatus('Exception loading list (' + data + '): ' + error, true);
       }
 
       loadingDiv.style.display = 'none';
