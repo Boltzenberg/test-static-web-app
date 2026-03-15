@@ -15,6 +15,7 @@ using Microsoft.Azure.Functions.Worker.Http;
 public class TelegramWebhook
 {
     private static readonly long JonUserId = 5241310949;
+    private static readonly long TeresaUserId = 5411752675;
 
     [Function("TelegramWebhook")]
     public static async Task<HttpResponseData> InvokeWebhook([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
@@ -46,7 +47,7 @@ public class TelegramWebhook
             else if (text.StartsWith("/add "))
             {
                 // Add to the grocery list
-                if (fromId != JonUserId)
+                if (fromId != JonUserId && fromId != TeresaUserId)
                 {
                     await Telegram.SendAsync(chatId, "❌ Unauthorized");
                     return response;
@@ -76,7 +77,7 @@ public class TelegramWebhook
             else if (text.StartsWith("/remove "))
             {
                 // Add to the grocery list
-                if (fromId != JonUserId)
+                if (fromId != JonUserId && fromId != TeresaUserId)
                 {
                     await Telegram.SendAsync(chatId, "❌ Unauthorized");
                     return response;
