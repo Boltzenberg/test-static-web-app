@@ -18,8 +18,11 @@ public class TelegramWebhook
     public static async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
     {
         await Telegram.LogInfoAsync("TelegramWebhook invoked");
-        
+
         var body = await new StreamReader(req.Body).ReadToEndAsync();
+
+        await Telegram.LogInfoAsync("Received body '" + body + "'");
+        
         var update = JsonSerializer.Deserialize<TelegramUpdate>(body);
 
         var chatId = update?.Message?.Chat?.Id.ToString();
