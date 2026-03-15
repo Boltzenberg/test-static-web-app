@@ -57,7 +57,7 @@ namespace Boltzenberg.Functions
                     UpdateGroceryListPayload? reqBody = JsonSerializer.Deserialize<UpdateGroceryListPayload>(body);
                     if (reqBody != null)
                     {
-                        result = await UpdateGroceryList(listId, reqBody);
+                        result = await DoUpdateGroceryList(listId, reqBody);
                     }
                 }
             }
@@ -85,7 +85,7 @@ namespace Boltzenberg.Functions
             return new OkObjectResult(response);
         }
 
-        public static async Task<OperationResult<GroceryListDB>?> UpdateGroceryList(string listId, UpdateGroceryListPayload payload)
+        public static async Task<OperationResult<GroceryListDB>?> DoUpdateGroceryList(string listId, UpdateGroceryListPayload payload)
         {
             StringBuilder sbLog = new StringBuilder();
             OperationResult<GroceryListDB>? result = null;

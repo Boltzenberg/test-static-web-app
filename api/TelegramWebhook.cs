@@ -56,7 +56,7 @@ public class TelegramWebhook
                 string item = text.Substring(text.IndexOf(' ')).Trim();
                 UpdateGroceryListPayload payload = new UpdateGroceryListPayload();
                 payload.ToAdd.Add(new GroceryListItem(item));
-                var result = await GroceryList.UpdateGroceryList("Test", payload);
+                var result = await GroceryList.DoUpdateGroceryList("Test", payload);
                 if (result == null || result.Entity == null || result.Code != Boltzenberg.Functions.Storage.ResultCode.Success)
                 {
                     await Telegram.SendAsync(chatId, "❌ failed to update the grocery list!  Check the logs.");
