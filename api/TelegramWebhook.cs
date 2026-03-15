@@ -23,8 +23,6 @@ public class TelegramWebhook
         {
             var body = await new StreamReader(req.Body).ReadToEndAsync();
 
-            await Telegram.LogInfoAsync("Received body '" + body + "'");
-
             var update = JsonSerializer.Deserialize<TelegramUpdate>(
                 body,
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
