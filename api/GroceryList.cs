@@ -64,11 +64,17 @@ namespace Boltzenberg.Functions
                 result = await JsonStore.Read<GroceryListDB>(GroceryListDB.GroceryListAppId, listId);
             }
 
+            await Telegram.LogInfoAsync("Grocery List result '" + result + "'");
+
             if (result == null || result.Entity == null)
             {
                 await Telegram.LogErrorAsync("Grocery List returning bad request result");
                 return new BadRequestResult();
             }
+
+            await Telegram.LogInfoAsync("Grocery List result.Entity '" + result.Entity + "'");
+            await Telegram.LogInfoAsync("Grocery List result.Entity.Items '" + string.Join(", ", result.Entity.Items) + "'");
+            await Telegram.LogInfoAsync("Grocery List result.Entity.Items.Count '" + result.Entity.Items.Count + "'");
 
             string response = JsonSerializer.Serialize(result.Entity.Items);
             await Telegram.LogInfoAsync("Grocery List returning '" + response + "'");

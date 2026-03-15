@@ -63,7 +63,8 @@ public class TelegramWebhook
                 }
                 else
                 {
-                    StringBuilder sb = new StringBuilder("🟢 added!");
+                    StringBuilder sb = new StringBuilder();
+                    sb.AppendLine("🟢");
                     foreach (var glItem in result.Entity.Items)
                     {
                         sb.AppendLine(glItem.Item);
