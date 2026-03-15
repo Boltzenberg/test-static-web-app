@@ -69,14 +69,14 @@ namespace Boltzenberg.Functions
                                 GroceryListItem? itemToRemove = result.Entity.Items.Where(i => i.Item == item.Item).FirstOrDefault();
                                 if (itemToRemove != null)
                                 {
-                                    sbLog.AppendLine("🔴 Grocery List Removing '" + itemToRemove + "'");
+                                    sbLog.AppendLine("🔴 Grocery List Removing '" + itemToRemove.Item + "'");
                                     result.Entity.Items.Remove(itemToRemove);
                                 }
                             }
 
                             foreach (GroceryListItem item in reqBody.ToAdd)
                             {
-                                sbLog.AppendLine("🟢 Grocery List Adding '" + item + "'");
+                                sbLog.AppendLine("🟢 Grocery List Adding '" + item.Item + "'");
                                 result.Entity.Items.Add(item);
                             }
 
