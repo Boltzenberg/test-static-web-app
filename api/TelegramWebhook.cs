@@ -9,6 +9,7 @@ using Boltzenberg.Functions.Comms;
 using Boltzenberg.Functions.DataModels.GroceryList;
 using Boltzenberg.Functions.DataModels.Telegram;
 using Boltzenberg.Functions.Logging;
+using Boltzenberg.Functions.Storage;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 
@@ -76,7 +77,7 @@ public class TelegramWebhook
             }
             else if (text.StartsWith("/remove "))
             {
-                // Add to the grocery list
+                // Remove from the grocery list
                 if (fromId != JonUserId && fromId != TeresaUserId)
                 {
                     await Telegram.SendAsync(chatId, "❌ Unauthorized");
@@ -91,6 +92,33 @@ public class TelegramWebhook
                 if (result == null || result.Entity == null || result.Code != Boltzenberg.Functions.Storage.ResultCode.Success)
                 {
                     await Telegram.SendAsync(chatId, "❌ failed to update the grocery list!  Check the logs.");
+                }
+                else
+                {
+                    StringBuilder sb = new StringBuilder();
+                    sb.AppendLine("🟢");
+                    foreach (var glItem in result.Entity.Items)
+                    {
+                        sb.AppendLine(glItem.Item);
+                    }
+                    await Telegram.SendAsync(chatId, sb.ToString());
+                }
+                await log.Close();
+            }
+            else if (text == "/list")
+            {
+                // Show the grocery list
+                if (fromId != JonUserId && fromId != TeresaUserId)
+                {
+                    await Telegram.SendAsync(chatId, "❌ Unauthorized");
+                    return response;
+                }
+
+                LogBuffer log = new LogBuffer("Webhook - /list");
+                var result = await JsonStore.Read<GroceryListDB>(GroceryListDB.GroceryListAppId, "Test");
+                if (result == null || result.Entity == null || result.Code != ResultCode.Success)
+                {
+                    await Telegram.SendAsync(chatId, "❌ failed to get the grocery list!  Check the logs.");
                 }
                 else
                 {
