@@ -72,6 +72,34 @@ public class TelegramWebhook
                     await Telegram.SendAsync(chatId, sb.ToString());
                 }
             }
+            else if (text.StartsWith("/remove "))
+            {
+                // Add to the grocery list
+                if (fromId != JonUserId)
+                {
+                    await Telegram.SendAsync(chatId, "❌ Unauthorized");
+                    return response;
+                }
+
+                string item = text.Substring(text.IndexOf(' ')).Trim();
+                UpdateGroceryListPayload payload = new UpdateGroceryListPayload();
+                payload.ToRemove.Add(new GroceryListItem(item));
+                var result = await GroceryList.DoUpdateGroceryList("Test", payload);
+                if (result == null || result.Entity == null || result.Code != Boltzenberg.Functions.Storage.ResultCode.Success)
+                {
+                    await Telegram.SendAsync(chatId, "❌ failed to update the grocery list!  Check the logs.");
+                }
+                else
+                {
+                    StringBuilder sb = new StringBuilder();
+                    sb.AppendLine("🟢");
+                    foreach (var glItem in result.Entity.Items)
+                    {
+                        sb.AppendLine(glItem.Item);
+                    }
+                    await Telegram.SendAsync(chatId, sb.ToString());
+                }
+            }
             else
             {
                 await Telegram.SendAsync(chatId, "🤖 Unknown command");

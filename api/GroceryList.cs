@@ -47,8 +47,6 @@ namespace Boltzenberg.Functions
 
             OperationResult<GroceryListDB>? result = null;
 
-            await Telegram.LogInfoAsync("Grocery List '" + req.Method + "'");
-
             if (string.Equals(req.Method, "post", StringComparison.OrdinalIgnoreCase))
             {
                 string body = await new StreamReader(req.Body).ReadToEndAsync();
@@ -63,12 +61,8 @@ namespace Boltzenberg.Functions
             }
             else
             {
-                await Telegram.LogInfoAsync("Grocery List reading '" + listId + "'");
                 result = await JsonStore.Read<GroceryListDB>(GroceryListDB.GroceryListAppId, listId);
-                await Telegram.LogInfoAsync("Grocery List done read '" + listId + "'");
             }
-
-            await Telegram.LogInfoAsync("Grocery List result '" + result + "'");
 
             if (result == null || result.Entity == null)
             {
@@ -76,12 +70,7 @@ namespace Boltzenberg.Functions
                 return new BadRequestResult();
             }
 
-            await Telegram.LogInfoAsync("Grocery List result.Entity '" + result.Entity + "'");
-            await Telegram.LogInfoAsync("Grocery List result.Entity.Items '" + string.Join(", ", result.Entity.Items) + "'");
-            await Telegram.LogInfoAsync("Grocery List result.Entity.Items.Count '" + result.Entity.Items.Count + "'");
-
             string response = JsonSerializer.Serialize(result.Entity.Items);
-            await Telegram.LogInfoAsync("Grocery List returning '" + response + "'");
             return new OkObjectResult(response);
         }
 
