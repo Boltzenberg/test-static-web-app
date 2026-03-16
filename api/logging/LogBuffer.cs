@@ -1,5 +1,8 @@
+using System.ClientModel.Primitives;
+using System.Diagnostics.Eventing.Reader;
 using System.Text;
 using Boltzenberg.Functions.Comms;
+using Boltzenberg.Functions.Storage;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -47,6 +50,29 @@ namespace Boltzenberg.Functions.Logging
         {
             this.sbLog.AppendLine(string.Format("*EXCEPTION* - `{0}`: {1}", DateTime.UtcNow.ToString("o"), ex.ToString()));
             this.writeOnClose = true;
+        }
+
+        public void OperationResult<T>(string message, OperationResult<T> result)
+        {
+            if (result.Code == ResultCode.Success)
+            {
+                // Do nothing
+            }
+            else if (result.Code == ResultCode.PreconditionFailed)
+            {
+                this.Error("{0} - PreconditionFailed");
+            }
+            else if (result.Code == ResultCode.GenericError)
+            {
+                if (result.Error != null)
+                {
+                    this.Error("{0} - {1}", message, result.Error.ToString());
+                }
+                else
+                {
+                    this.Error("{0}", message);
+                }
+            }
         }
 
         public async Task Close()

@@ -1,5 +1,6 @@
 using System.Text;
 using Boltzenberg.Functions.Comms;
+using Boltzenberg.Functions.Logging;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
@@ -9,14 +10,11 @@ namespace Boltzenberg.Functions;
 
 public class SubmitContactForm
 {
-    private readonly ILogger<SubmitContactForm> _logger;
-
-    public SubmitContactForm(ILogger<SubmitContactForm> logger)
+    public SubmitContactForm()
     {
-        _logger = logger;
     }
 
-    private async Task<IActionResult> SendEmail(string toAddress, string toName, HttpRequest req)
+    private async Task<IActionResult> SendEmail(string toAddress, string toName, HttpRequest req, LogBuffer log)
     {
         string message = "This is a test mail";
 
@@ -32,10 +30,12 @@ public class SubmitContactForm
         string responseMessage = string.Empty;
         if (await Email.SendContactFormMailAsync(toName, toAddress, message))
         {
+            log.Info("Successfully sent email to {0}", toAddress);
             responseMessage = "<H2>Great! Thanks for filling out my form!</H2>";
         }
         else
         {
+            log.Error("Failed to send email to {0}", toAddress);
             responseMessage = "<H2>Oops! There was a problem submitting the form.</H2>";
         }
 
@@ -47,14 +47,18 @@ public class SubmitContactForm
     }
 
     [Function("ContactDanRosenberg")]
-    public async Task<IActionResult> ContactDanRosenberg([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequest req)
+    public async Task<IActionResult> ContactDanRosenbergUnwrapped([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequest req) =>
+        await LogBuffer.Wrap("ContactDanRosenberg", req, ContactDanRosenberg);
+    public async Task<IActionResult> ContactDanRosenberg(HttpRequest req, LogBuffer log)
     {
-        return await SendEmail("danrosenberg@gmail.com", "Dan Rosenberg", req);
+        return await SendEmail("danrosenberg@gmail.com", "Dan Rosenberg", req, log);
     }
 
     [Function("ContactJonRosenberg")]
-    public async Task<IActionResult> ContactJonRosenberg([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequest req)
+    public async Task<IActionResult> ContactJonRosenbergUnwrapped([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequest req) =>
+        await LogBuffer.Wrap("ContactJonRosenberg", req, ContactJonRosenberg);
+    public async Task<IActionResult> ContactJonRosenberg(HttpRequest req, LogBuffer log)
     {
-        return await SendEmail("jon.p.rosenberg@gmail.com", "Jon Rosenberg", req);
+        return await SendEmail("jon.p.rosenberg@gmail.com", "Jon Rosenberg", req, log);
     }
 }

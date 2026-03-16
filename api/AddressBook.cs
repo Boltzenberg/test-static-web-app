@@ -13,20 +13,14 @@ namespace Boltzenberg.Functions;
 
 public class AddressBook
 {
-    private readonly ILogger<AddressBook> _logger;
-
     public AddressBook(ILogger<AddressBook> logger)
     {
-        _logger = logger;
     }
 
     [Function("AddressBookAddEntry")]
-    public async Task<IActionResult> AddressBookAddEntry([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequest req)
-    {
-        return await LogBuffer.Wrap("AddressBookAddEntry", req, DoAddressBookAddEntry);
-    }
-
-    private async Task<IActionResult> DoAddressBookAddEntry(HttpRequest req, LogBuffer log)
+    public async Task<IActionResult> AddressBookAddEntryUnwrapped([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequest req) =>
+        await LogBuffer.Wrap("AddressBookAddEntry", req, AddressBookAddEntry);
+    private async Task<IActionResult> AddressBookAddEntry(HttpRequest req, LogBuffer log)
     {
         if (!await AuthZChecker.IsAuthorizedForAddressBook(req))
         {
@@ -73,165 +67,166 @@ public class AddressBook
     }
 
     [Function("AddressBookUpdateEntry")]
-    public async Task<IActionResult> AddressBookUpdateEntry([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequest req)
+    public async Task<IActionResult> AddressBookUpdateEntryUnwrapped([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequest req) =>
+        await LogBuffer.Wrap("AddressBookUpdateEntry", req, AddressBookUpdateEntry);
+    public async Task<IActionResult> AddressBookUpdateEntry(HttpRequest req, LogBuffer log)
     {
-        try
+        if (!await AuthZChecker.IsAuthorizedForAddressBook(req))
         {
-            if (!await AuthZChecker.IsAuthorizedForAddressBook(req))
-            {
-                return new UnauthorizedObjectResult("No auth header found");
-            }
-
-            string body = await new StreamReader(req.Body).ReadToEndAsync();
-            if (!string.IsNullOrEmpty(body))
-            {
-                _logger.LogInformation("Request Body: " + body);
-                AddressBookEntry? entry = JsonSerializer.Deserialize<AddressBookEntry>(body);
-                if (entry == null)
-                {
-                    return new BadRequestResult();
-                }
-
-                var result = await JsonStore.Update(entry);
-                if (result.Code == ResultCode.Success && result.Entity != null)
-                {
-                    return new OkObjectResult(JsonSerializer.Serialize(result.Entity));
-                }
-                else if (result.Code == ResultCode.PreconditionFailed)
-                {
-                    return new StatusCodeResult((int)HttpStatusCode.PreconditionFailed);
-                }
-            }
-
-            return new BadRequestResult();
+            log.Error("No auth header found");
+            return new UnauthorizedObjectResult("No auth header found");
         }
-        catch (Exception ex)
-        {
-            return new OkObjectResult(ex.ToString());
-        }
-    }
 
-    [Function("AddressBookDeleteEntry")]
-    public async Task<IActionResult> AddressBookDeleteEntry([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequest req)
-    {
-        try
+        string body = await new StreamReader(req.Body).ReadToEndAsync();
+        if (!string.IsNullOrEmpty(body))
         {
-            if (!await AuthZChecker.IsAuthorizedForAddressBook(req))
+            AddressBookEntry? entry = JsonSerializer.Deserialize<AddressBookEntry>(body);
+            if (entry == null)
             {
-                return new UnauthorizedObjectResult("No auth header found");
+                log.Error("Failed to deserialize request body {0}", body);
+                return new BadRequestResult();
             }
 
-            string body = await new StreamReader(req.Body).ReadToEndAsync();
-            if (!string.IsNullOrEmpty(body))
+            var result = await JsonStore.Update(entry);
+            if (result.Code == ResultCode.Success && result.Entity != null)
             {
-                _logger.LogInformation("Request Body: " + body);
-                AddressBookEntry? entry = JsonSerializer.Deserialize<AddressBookEntry>(body);
-                if (entry == null)
-                {
-                    return new BadRequestObjectResult("Failed to deserialize the entry to delete");
-                }
-
-                var result = await JsonStore.Delete(entry);
-                if (result.Code == ResultCode.Success)
-                {
-                    return new NoContentResult();
-                }
-                else if (result.Code == ResultCode.PreconditionFailed)
-                {
-                    return new StatusCodeResult((int)HttpStatusCode.PreconditionFailed);
-                }
+                return new OkObjectResult(JsonSerializer.Serialize(result.Entity));
             }
-
-            return new BadRequestResult();
-        }
-        catch (Exception ex)
-        {
-            return new OkObjectResult(ex.ToString());
-        }
-    }
-
-    [Function("AddressBookReadAll")]
-    public async Task<IActionResult> AddressBookReadAll([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest req)
-    {
-        try
-        {
-            if (!await AuthZChecker.IsAuthorizedForAddressBook(req))
+            else if (result.Code == ResultCode.PreconditionFailed)
             {
-                return new UnauthorizedObjectResult("No auth header found");
-            }
-
-            var entries = await JsonStore.ReadAll<AddressBookEntry>(AddressBookEntry.AddressBookEntryAppId);
-            if (entries.Code == ResultCode.Success)
-            {
-                return new OkObjectResult(JsonSerializer.Serialize(entries.Entity));
+                log.Error("OCC failure");
+                return new StatusCodeResult((int)HttpStatusCode.PreconditionFailed);
             }
             else
             {
-                return new BadRequestResult();
+                log.OperationResult("Failed to update the entry", result);
             }
         }
-        catch (Exception ex)
+        else
         {
-            return new OkObjectResult(ex.ToString());
+            log.Error("No request body!");
+        }
+
+        return new BadRequestResult();
+    }
+
+    [Function("AddressBookDeleteEntry")]
+    public async Task<IActionResult> AddressBookDeleteEntryUnwrapped([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequest req) =>
+        await LogBuffer.Wrap("AddressBookDeleteEntry", req, AddressBookDeleteEntry);
+    public async Task<IActionResult> AddressBookDeleteEntry(HttpRequest req, LogBuffer log)
+    {
+        if (!await AuthZChecker.IsAuthorizedForAddressBook(req))
+        {
+            log.Error("No auth header found");
+            return new UnauthorizedObjectResult("No auth header found");
+        }
+
+        string body = await new StreamReader(req.Body).ReadToEndAsync();
+        if (!string.IsNullOrEmpty(body))
+        {
+            AddressBookEntry? entry = JsonSerializer.Deserialize<AddressBookEntry>(body);
+            if (entry == null)
+            {
+                log.Error("Failed to deserialized request body '{0}'", body);
+                return new BadRequestObjectResult("Failed to deserialize the entry to delete");
+            }
+
+            var result = await JsonStore.Delete(entry);
+            if (result.Code == ResultCode.Success)
+            {
+                return new NoContentResult();
+            }
+            else if (result.Code == ResultCode.PreconditionFailed)
+            {
+                log.Error("OCC failure");
+                return new StatusCodeResult((int)HttpStatusCode.PreconditionFailed);
+            }
+            else
+            {
+                log.OperationResult("Failed to delete the entry", result);
+            }
+        }
+        else
+        {
+            log.Error("No request body!");
+        }
+
+        return new BadRequestResult();
+    }
+
+    [Function("AddressBookReadAll")]
+    public async Task<IActionResult> AddressBookReadAllUnwrapped([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest req) =>
+        await LogBuffer.Wrap("AddressBookReadAll", req, AddressBookReadAll);
+    public async Task<IActionResult> AddressBookReadAll(HttpRequest req, LogBuffer log)
+    {
+        if (!await AuthZChecker.IsAuthorizedForAddressBook(req))
+        {
+            log.Error("No auth header found");
+            return new UnauthorizedObjectResult("No auth header found");
+        }
+
+        var entries = await JsonStore.ReadAll<AddressBookEntry>(AddressBookEntry.AddressBookEntryAppId);
+        if (entries.Code == ResultCode.Success)
+        {
+            return new OkObjectResult(JsonSerializer.Serialize(entries.Entity));
+        }
+        else
+        {
+            log.OperationResult("Failed to read the entries", entries);
+            return new BadRequestResult();
         }
     }
 
     [Function("AddressBookReadOne")]
-    public async Task<IActionResult> AddressBookReadOne([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest req)
+    public async Task<IActionResult> AddressBookReadOneUnwrapped([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest req) =>
+        await LogBuffer.Wrap("AddressBookReadOne", req, AddressBookReadOne);
+    public async Task<IActionResult> AddressBookReadOne(HttpRequest req, LogBuffer log)
     {
-        try
+        if (!await AuthZChecker.IsAuthorizedForAddressBook(req))
         {
-            if (!await AuthZChecker.IsAuthorizedForAddressBook(req))
-            {
-                return new UnauthorizedObjectResult("No auth header found");
-            }
-
-            string? entryId = req.Query["id"];
-            if (string.IsNullOrEmpty(entryId))
-            {
-                return new BadRequestObjectResult("Missing the id query parameter");
-            }
-
-            var entry = await JsonStore.Read<AddressBookEntry>(AddressBookEntry.AddressBookEntryAppId, entryId);
-            if (entry.Code == ResultCode.Success)
-            {
-                return new OkObjectResult(JsonSerializer.Serialize(entry.Entity));
-            }
-            else
-            {
-                return new BadRequestResult();
-            }
+            log.Error("No auth header found");
+            return new UnauthorizedObjectResult("No auth header found");
         }
-        catch (Exception ex)
+
+        string? entryId = req.Query["id"];
+        if (string.IsNullOrEmpty(entryId))
         {
-            return new OkObjectResult(ex.ToString());
+            log.Error("Missing the id query parameter");
+            return new BadRequestObjectResult("Missing the id query parameter");
+        }
+
+        var entry = await JsonStore.Read<AddressBookEntry>(AddressBookEntry.AddressBookEntryAppId, entryId);
+        if (entry.Code == ResultCode.Success)
+        {
+            return new OkObjectResult(JsonSerializer.Serialize(entry.Entity));
+        }
+        else
+        {
+            log.OperationResult("Failed to read the entry", entry);
+            return new BadRequestResult();
         }
     }
 
     [Function("AddressBookGetCanned")]
-    public IActionResult AddressBookGetCanned([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest req)
+    public async Task<IActionResult> AddressBookGetCannedUnwrapped([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest req) =>
+        await LogBuffer.Wrap("AddressBookGetCanned", req, AddressBookGetCanned);
+    public async Task<IActionResult> AddressBookGetCanned(HttpRequest req, LogBuffer log)
     {
-        try
-        {
-            AddressBookEntry entry = new AddressBookEntry();
-            entry.id = "id123";
-            entry._etag = "etag";
-            entry.FirstName = "Dummy";
-            entry.LastName = "Name";
-            entry.Street = "123 Happy Street";
-            entry.Apartment = "Apt B";
-            entry.City = "Springfield";
-            entry.State = "MU";
-            entry.ZipCode = "12345";
-            entry.PhoneNumber = "123.456.7890";
-            entry.MailingName = "Mr. and Mrs. Name";
-            entry.OtherPeople = "Other";
-            entry.HolidayCard = "Yes";
-            return new OkObjectResult(JsonSerializer.Serialize(entry));
-        }
-        catch (Exception ex)
-        {
-            return new OkObjectResult(ex.ToString());
-        }
+        await Task.Yield();
+        AddressBookEntry entry = new AddressBookEntry();
+        entry.id = "id123";
+        entry._etag = "etag";
+        entry.FirstName = "Dummy";
+        entry.LastName = "Name";
+        entry.Street = "123 Happy Street";
+        entry.Apartment = "Apt B";
+        entry.City = "Springfield";
+        entry.State = "MU";
+        entry.ZipCode = "12345";
+        entry.PhoneNumber = "123.456.7890";
+        entry.MailingName = "Mr. and Mrs. Name";
+        entry.OtherPeople = "Other";
+        entry.HolidayCard = "Yes";
+        return new OkObjectResult(JsonSerializer.Serialize(entry));
     }
 }
