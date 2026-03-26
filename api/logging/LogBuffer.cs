@@ -48,7 +48,7 @@ namespace Boltzenberg.Functions.Logging
 
         public void Exception(Exception ex)
         {
-            this.sbLog.AppendLine(string.Format("*EXCEPTION* - `{0}`: {1}", DateTime.UtcNow.ToString("o"), ex.ToString()));
+            this.sbLog.AppendLine(string.Format("*EXCEPTION* - `{0}`: {1}: {2}", DateTime.UtcNow.ToString("o"), ex.GetType(), ex.Message));
             this.writeOnClose = true;
         }
 

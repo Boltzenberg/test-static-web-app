@@ -234,20 +234,16 @@ public class AddressBook
         await LogBuffer.Wrap("AddressBookReadAll", req, AddressBookReadAll);
     private async Task<IActionResult> AddressBookReadAll(HttpRequest req, LogBuffer log)
     {
-        log.Error("Testing logging");
         if (!await AuthZChecker.IsAuthorizedForAddressBook(req))
         {
             log.Error("No auth header found");
             return new UnauthorizedObjectResult("No auth header found");
         }
 
-        log.Info("Reading from the store");
         var entries = await _store.ReadAllAsync(AddressBookDocument.PartitionKey);
         if (entries.Code == ResultCode.Success && entries.Entity != null)
         {
-            log.Info("Successfully read from the store");
             var responses = entries.Entity.Select(ResponseFromDocument).ToList();
-            log.Info("Generated the responses");
             return new OkObjectResult(JsonSerializer.Serialize(responses));
         }
         else

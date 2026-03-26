@@ -40,11 +40,20 @@ public class Scratch
 
     [Function("SendTelegram")]
     public async Task<IActionResult> SendTelegramUnwrapped([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest req)
-        => await LogBuffer.Wrap("SendTelegram", req, SendTelegramImpl);
-    private async Task<IActionResult> SendTelegramImpl(HttpRequest req, LogBuffer log)
+        => await LogBuffer.Wrap("SendTelegram", req, SendTelegram);
+    private async Task<IActionResult> SendTelegram(HttpRequest req, LogBuffer log)
     {
         await Telegram.LogInfoAsync("Send Telegram API invoked!");
         log.Info("SendTelegram invoked");
         return new OkObjectResult("Telegram Message Sent!");
+    }
+
+    [Function("ThrowExceptionLoggingTest")]
+    public async Task<IActionResult> ThrowExceptionLoggingTestUnwrapped([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest req)
+        => await LogBuffer.Wrap("ThrowExceptionLoggingTest", req, ThrowExceptionLoggingTest);
+    private async Task<IActionResult> ThrowExceptionLoggingTest(HttpRequest req, LogBuffer log)
+    {
+        log.Info("Adding a log line before throwing the exception");
+        throw new InvalidOperationException("This is the message to the InvalidOperationException");
     }
 }
