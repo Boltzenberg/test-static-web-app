@@ -23,6 +23,11 @@ public class AddressBook
 
     // --- Mapping helpers ---
 
+    // Cosmos stores HolidayCard as a string (legacy values include "Holiday", "Yes", "").
+    // Treat any non-empty string as true.
+    private static bool HolidayCardFromDoc(string? value) => !string.IsNullOrEmpty(value);
+    private static string HolidayCardToDoc(bool value) => value ? "Yes" : "";
+
     private static AddressBookDocument DocumentFromRequest(AddressBookEntryRequest req)
         => new AddressBookDocument
         {
@@ -36,7 +41,7 @@ public class AddressBook
             PhoneNumber = req.PhoneNumber,
             MailingName = req.MailingName,
             OtherPeople = req.OtherPeople,
-            HolidayCard = req.HolidayCard
+            HolidayCard = HolidayCardToDoc(req.HolidayCard)
         };
 
     private static AddressBookDocument DocumentFromUpdateRequest(AddressBookEntryUpdateRequest req)
@@ -54,11 +59,12 @@ public class AddressBook
             PhoneNumber = req.PhoneNumber,
             MailingName = req.MailingName,
             OtherPeople = req.OtherPeople,
-            HolidayCard = req.HolidayCard
+            HolidayCard = HolidayCardToDoc(req.HolidayCard)
         };
 
     private static AddressBookEntryResponse ResponseFromDocument(AddressBookDocument doc)
     {
+        var holidayCard = HolidayCardFromDoc(doc.HolidayCard);
         var domain = new AddressBookEntry
         {
             Id = doc.id,
@@ -72,7 +78,7 @@ public class AddressBook
             PhoneNumber = doc.PhoneNumber,
             MailingName = doc.MailingName,
             OtherPeople = doc.OtherPeople,
-            HolidayCard = doc.HolidayCard
+            HolidayCard = holidayCard
         };
 
         return new AddressBookEntryResponse(
@@ -88,7 +94,7 @@ public class AddressBook
             PhoneNumber: doc.PhoneNumber,
             MailingName: doc.MailingName,
             OtherPeople: doc.OtherPeople,
-            HolidayCard: doc.HolidayCard,
+            HolidayCard: holidayCard,
             MailingLabel: domain.MailingLabel
         );
     }
@@ -228,16 +234,20 @@ public class AddressBook
         await LogBuffer.Wrap("AddressBookReadAll", req, AddressBookReadAll);
     private async Task<IActionResult> AddressBookReadAll(HttpRequest req, LogBuffer log)
     {
+        log.Error("Testing logging");
         if (!await AuthZChecker.IsAuthorizedForAddressBook(req))
         {
             log.Error("No auth header found");
             return new UnauthorizedObjectResult("No auth header found");
         }
 
+        log.Info("Reading from the store");
         var entries = await _store.ReadAllAsync(AddressBookDocument.PartitionKey);
         if (entries.Code == ResultCode.Success && entries.Entity != null)
         {
+            log.Info("Successfully read from the store");
             var responses = entries.Entity.Select(ResponseFromDocument).ToList();
+            log.Info("Generated the responses");
             return new OkObjectResult(JsonSerializer.Serialize(responses));
         }
         else
@@ -297,7 +307,7 @@ public class AddressBook
             PhoneNumber = "123.456.7890",
             MailingName = "Mr. and Mrs. Name",
             OtherPeople = "Other",
-            HolidayCard = true
+            HolidayCard = "Yes"
         };
         return new OkObjectResult(JsonSerializer.Serialize(ResponseFromDocument(doc)));
     }

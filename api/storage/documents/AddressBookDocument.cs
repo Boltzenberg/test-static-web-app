@@ -16,7 +16,7 @@ namespace Boltzenberg.Functions.Storage.Documents
         public string? PhoneNumber { get; set; }
         public string? MailingName { get; set; }
         public string? OtherPeople { get; set; }
-        public bool HolidayCard { get; set; }
+        public string? HolidayCard { get; set; }
 
         public AddressBookDocument()
             : base(PartitionKey)
