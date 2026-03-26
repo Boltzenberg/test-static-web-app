@@ -152,7 +152,7 @@
 
       // Map the stored HolidayCard value to the select; unknown values fall back to blank
       const hcSelect = document.getElementById('HolidayCard');
-      const storedVal = currentEntry.HolidayCard || '';
+      const storedVal = currentEntry.HolidayCard ? 'Yes' : '';
       const hasOption = Array.from(hcSelect.options).some(o => o.value === storedVal);
       hcSelect.value = hasOption ? storedVal : '';
 
@@ -167,7 +167,9 @@
 
       for (const key of ['MailingName', 'FirstName', 'LastName', 'Street', 'Apartment',
                          'City', 'State', 'ZipCode', 'PhoneNumber', 'OtherPeople', 'HolidayCard']) {
-        currentEntry[key] = document.getElementById(key).value;
+        currentEntry[key] = key === 'HolidayCard'
+          ? document.getElementById(key).value === 'Yes'
+          : document.getElementById(key).value;
       }
 
       try {
@@ -183,7 +185,7 @@
           const s = document.getElementById('status');
           s.className = 'status success';
           s.innerHTML = `Saved successfully. <a href="/addressbook/index.html?id=${encodeURIComponent(id)}">Return to address book &rarr;</a>`;
-        } else if (res.status === 412) {
+        } else if (res.status === 409) {
           showStatus('Save failed: someone else updated this entry. Please reload.', true);
         } else {
           showStatus('Save failed.', true);
@@ -219,7 +221,7 @@
         if (res.ok) {
           showStatus('Entry deleted successfully. Redirecting\u2026', false);
           setTimeout(() => { window.location.href = '/addressbook/index.html'; }, 800);
-        } else if (res.status === 412) {
+        } else if (res.status === 409) {
           showStatus('Delete failed: someone else updated this entry. Please reload.', true);
           btn.disabled = false;
           btn.textContent = 'Delete Entry';

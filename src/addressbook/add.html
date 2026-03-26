@@ -134,7 +134,7 @@
         ZipCode:     document.getElementById('ZipCode').value,
         PhoneNumber: document.getElementById('PhoneNumber').value,
         OtherPeople: document.getElementById('OtherPeople').value,
-        HolidayCard: document.getElementById('HolidayCard').value
+        HolidayCard: document.getElementById('HolidayCard').value === 'Yes'
       };
 
       try {
@@ -154,7 +154,7 @@
 
         const created = await res.json();
 
-        if (!created.id) {
+        if (!created.Id) {
           status.textContent = 'Entry added, but no ID returned.';
           status.className = 'status error';
           btn.disabled = false;
@@ -166,7 +166,7 @@
         status.className = 'status success';
 
         setTimeout(() => {
-          window.location.href = `/addressbook/edit.html?id=${encodeURIComponent(created.id)}`;
+          window.location.href = `/addressbook/edit.html?id=${encodeURIComponent(created.Id)}`;
         }, 600);
 
       } catch (err) {

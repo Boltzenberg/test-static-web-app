@@ -117,9 +117,9 @@
         if (addressEntries.length > 0) {
           const params = new URLSearchParams(window.location.search);
           const id = params.get('id');
-          const selected = id ? addressEntries.find(x => x.id === id) : null;
+          const selected = id ? addressEntries.find(x => x.Id === id) : null;
           const entry = selected || addressEntries[0];
-          dropdown.value = entry.id;
+          dropdown.value = entry.Id;
           showAddress(entry);
         }
 
@@ -139,7 +139,7 @@
       dropdown.innerHTML = '';
       entries.forEach(entry => {
         const option = document.createElement('option');
-        option.value = entry.id;
+        option.value = entry.Id;
         option.textContent = (`${entry.LastName ?? ''}, ${entry.FirstName ?? ''}`).trim() || '(Unnamed Entry)';
         dropdown.appendChild(option);
       });
@@ -200,7 +200,7 @@
 
       linksDiv.innerHTML = `
         <div class="btn-group">
-          <a class="btn" href="/addressbook/edit.html?id=${encodeURIComponent(entry.id)}">Edit this entry</a>
+          <a class="btn" href="/addressbook/edit.html?id=${encodeURIComponent(entry.Id)}">Edit this entry</a>
           <a class="btn" href="/addressbook/add.html">Add new entry</a>
           <a class="btn" href="${googleMapsUrl(entry)}" target="_blank" rel="noopener">Map it!</a>
         </div>`;
@@ -240,7 +240,7 @@
       for (const entry of filtered) {
         const li = document.createElement('li');
         const link = document.createElement('a');
-        link.href = `/addressbook/edit.html?id=${entry.id}`;
+        link.href = `/addressbook/edit.html?id=${entry.Id}`;
         link.textContent = entry.MailingName ||
           `${entry.FirstName ?? ''} ${entry.LastName ?? ''}`.trim() ||
           '(Unnamed Entry)';
@@ -251,7 +251,7 @@
     }
 
     document.getElementById('addressDropdown').addEventListener('change', (e) => {
-      const entry = addressEntries.find(x => x.id === e.target.value);
+      const entry = addressEntries.find(x => x.Id === e.target.value);
       showAddress(entry);
     });
 
