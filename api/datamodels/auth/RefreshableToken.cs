@@ -1,4 +1,5 @@
 using Boltzenberg.Functions.Storage;
+using Boltzenberg.Functions.Storage.Documents;
 using Microsoft.AspNetCore.Http;
 
 namespace Boltzenberg.Functions.DataModels.Auth
@@ -39,7 +40,7 @@ namespace Boltzenberg.Functions.DataModels.Auth
                 return false;
             }
 
-            OperationResult<RefreshableToken> result = await JsonStore.Read<RefreshableToken>(RefreshableTokenAppId, RefreshableTokenId);
+            OperationResult<RefreshableTokenDocument> result = await new JsonStore<RefreshableTokenDocument>().ReadAsync(RefreshableTokenAppId, RefreshableTokenId);
             if (result.Code != ResultCode.Success || result.Entity == null)
             {
                 return false;

@@ -1,4 +1,5 @@
 using Boltzenberg.Functions.Storage;
+using Boltzenberg.Functions.Storage.Documents;
 using Microsoft.AspNetCore.Http;
 
 namespace Boltzenberg.Functions.DataModels.Auth
@@ -69,7 +70,12 @@ namespace Boltzenberg.Functions.DataModels.Auth
 
         private static async Task AddAuthLogLine(string line)
         {
-            await JsonStore.Create<AuthLog>(new AuthLog(line));
+            var doc = new AuthLogDocument
+            {
+                id = Guid.NewGuid().ToString(),
+                Line = string.Format("{0}: {1}", DateTime.Now, line)
+            };
+            await new JsonStore<AuthLogDocument>().CreateAsync(doc);
         }
     }
 }

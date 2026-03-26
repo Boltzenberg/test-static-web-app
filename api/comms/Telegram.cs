@@ -38,6 +38,8 @@ namespace Boltzenberg.Functions.Comms
 
             var url = $"https://api.telegram.org/bot{Token}/sendMessage";
 
+            Console.WriteLine("Sending " + message);
+
             var content = new StringContent(
                 JsonSerializer.Serialize(payload),
                 Encoding.UTF8,

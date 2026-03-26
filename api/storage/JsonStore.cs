@@ -3,30 +3,29 @@ using Microsoft.Azure.Cosmos;
 
 namespace Boltzenberg.Functions.Storage
 {
-    public static class JsonStore
+    /// <summary>
+    /// Generic Cosmos DB store. Use via DI as IJsonStore&lt;T&gt;.
+    /// </summary>
+    public class JsonStore<T> : IJsonStore<T> where T : CosmosDocument
     {
         private const string EndpointUri = "https://gunga-test-cosmosdb.documents.azure.com:443/";
-        private static string? PrimaryKey = Environment.GetEnvironmentVariable("GROCERY_LIST_PRIMARY_KEY");
-        private static CosmosClient cosmosClient = new CosmosClient(EndpointUri, PrimaryKey);
-        private static Database database = cosmosClient.GetDatabase("GungaDB");
-        private static Container container = database.GetContainer("DocumentsContainer");
+        private static readonly string? PrimaryKey = Environment.GetEnvironmentVariable("GROCERY_LIST_PRIMARY_KEY");
+        private static readonly CosmosClient _cosmosClient = new CosmosClient(EndpointUri, PrimaryKey);
+        private static readonly Database _database = _cosmosClient.GetDatabase("GungaDB");
+        private static readonly Container _container = _database.GetContainer("DocumentsContainer");
 
-        public static async Task<OperationResult<T>> Create<T>(T entity) where T : CosmosDocument
+        public async Task<OperationResult<T>> CreateAsync(T entity)
         {
             try
             {
-                ItemResponse<T> createResponse = await container.CreateItemAsync<T>(
+                ItemResponse<T> createResponse = await _container.CreateItemAsync<T>(
                     entity,
                     new PartitionKey(entity.AppId));
 
                 if (createResponse.StatusCode == System.Net.HttpStatusCode.Created)
-                {
                     return new OperationResult<T>(ResultCode.Success, createResponse.Resource, null);
-                }
                 else
-                {
                     return new OperationResult<T>(ResultCode.GenericError, createResponse.Resource, null);
-                }
             }
             catch (Exception ex)
             {
@@ -34,7 +33,7 @@ namespace Boltzenberg.Functions.Storage
             }
         }
 
-        public static async Task<OperationResult<T>> Read<T>(string appId, string docId) where T : CosmosDocument
+        public async Task<OperationResult<T>> ReadAsync(string appId, string docId)
         {
             QueryRequestOptions queryRequestOptions = new QueryRequestOptions() { PartitionKey = new PartitionKey(appId) };
 
@@ -45,7 +44,7 @@ namespace Boltzenberg.Functions.Storage
 
             try
             {
-                FeedIterator<T> queryResultSetIterator = container.GetItemQueryIterator<T>(queryDefinition, requestOptions: queryRequestOptions);
+                FeedIterator<T> queryResultSetIterator = _container.GetItemQueryIterator<T>(queryDefinition, requestOptions: queryRequestOptions);
 
                 T? entity = null;
                 if (queryResultSetIterator.HasMoreResults)
@@ -62,7 +61,7 @@ namespace Boltzenberg.Functions.Storage
             }
         }
 
-        public static async Task<OperationResult<T>> Update<T>(T entity) where T : CosmosDocument
+        public async Task<OperationResult<T>> UpdateAsync(T entity)
         {
             try
             {
@@ -71,20 +70,16 @@ namespace Boltzenberg.Functions.Storage
                     IfMatchEtag = entity._etag
                 };
 
-                ItemResponse<T> updateResponse = await container.ReplaceItemAsync<T>(
+                ItemResponse<T> updateResponse = await _container.ReplaceItemAsync<T>(
                     entity,
                     entity.id,
                     new PartitionKey(entity.AppId),
                     requestOptions);
 
                 if (updateResponse.StatusCode == System.Net.HttpStatusCode.OK)
-                {
                     return new OperationResult<T>(ResultCode.Success, updateResponse.Resource, null);
-                }
                 else
-                {
                     return new OperationResult<T>(ResultCode.GenericError, updateResponse.Resource, null);
-                }
             }
             catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.PreconditionFailed)
             {
@@ -92,23 +87,19 @@ namespace Boltzenberg.Functions.Storage
             }
         }
 
-        public static async Task<OperationResult<T>> Upsert<T>(T entity) where T : CosmosDocument
+        public async Task<OperationResult<T>> UpsertAsync(T entity)
         {
             try
             {
-                ItemResponse<T> upsertResponse = await container.UpsertItemAsync<T>(
+                ItemResponse<T> upsertResponse = await _container.UpsertItemAsync<T>(
                     entity,
                     new PartitionKey(entity.AppId));
 
                 if (upsertResponse.StatusCode == System.Net.HttpStatusCode.OK ||
                     upsertResponse.StatusCode == System.Net.HttpStatusCode.Created)
-                {
                     return new OperationResult<T>(ResultCode.Success, upsertResponse.Resource, null);
-                }
                 else
-                {
                     return new OperationResult<T>(ResultCode.GenericError, upsertResponse.Resource, null);
-                }
             }
             catch (CosmosException)
             {
@@ -116,7 +107,7 @@ namespace Boltzenberg.Functions.Storage
             }
         }
 
-        public static async Task<OperationResult<T>> Delete<T>(T entity) where T : CosmosDocument
+        public async Task<OperationResult<T>> DeleteAsync(T entity)
         {
             try
             {
@@ -125,19 +116,15 @@ namespace Boltzenberg.Functions.Storage
                     IfMatchEtag = entity._etag
                 };
 
-                ItemResponse<T> deleteResponse = await container.DeleteItemAsync<T>(
+                ItemResponse<T> deleteResponse = await _container.DeleteItemAsync<T>(
                     entity.id,
                     new PartitionKey(entity.AppId),
                     requestOptions);
 
                 if (deleteResponse.StatusCode == System.Net.HttpStatusCode.NoContent)
-                {
                     return new OperationResult<T>(ResultCode.Success, null, null);
-                }
                 else
-                {
                     return new OperationResult<T>(ResultCode.GenericError, null, null);
-                }
             }
             catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.PreconditionFailed)
             {
@@ -145,22 +132,18 @@ namespace Boltzenberg.Functions.Storage
             }
         }
 
-        public static async Task<OperationResult<T>> DeleteUnconditionally<T>(string appId, string docId) where T : CosmosDocument
+        public async Task<OperationResult<T>> DeleteUnconditionallyAsync(string appId, string docId)
         {
             try
             {
-                ItemResponse<T> deleteResponse = await container.DeleteItemAsync<T>(
+                ItemResponse<T> deleteResponse = await _container.DeleteItemAsync<T>(
                     docId,
                     new PartitionKey(appId));
 
                 if (deleteResponse.StatusCode == System.Net.HttpStatusCode.NoContent)
-                {
                     return new OperationResult<T>(ResultCode.Success, null, null);
-                }
                 else
-                {
                     return new OperationResult<T>(ResultCode.GenericError, null, null);
-                }
             }
             catch (CosmosException)
             {
@@ -168,7 +151,7 @@ namespace Boltzenberg.Functions.Storage
             }
         }
 
-        public static async Task<OperationResult<List<T>>> ReadAll<T>(string appId) where T : CosmosDocument
+        public async Task<OperationResult<List<T>>> ReadAllAsync(string appId)
         {
             QueryRequestOptions queryRequestOptions = new QueryRequestOptions() { PartitionKey = new PartitionKey(appId) };
 
@@ -178,7 +161,7 @@ namespace Boltzenberg.Functions.Storage
 
             try
             {
-                FeedIterator<T> iterator = container.GetItemQueryIterator<T>(queryDefinition, requestOptions: queryRequestOptions);
+                FeedIterator<T> iterator = _container.GetItemQueryIterator<T>(queryDefinition, requestOptions: queryRequestOptions);
 
                 List<T> results = new List<T>();
                 while (iterator.HasMoreResults)
@@ -195,4 +178,5 @@ namespace Boltzenberg.Functions.Storage
             }
         }
     }
+
 }

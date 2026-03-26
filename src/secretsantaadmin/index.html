@@ -259,7 +259,7 @@
         sorted.forEach(evt => {
           const a = document.createElement("a");
           a.href = "";
-          a.textContent = `${evt.Year} (${evt.id})`;
+          a.textContent = `${evt.Year} (${evt.EventId})`;
           a.style.display = "block";
           a.onclick = (e) => {
             e.preventDefault();
@@ -273,7 +273,7 @@
     function showEventEditor(evt) {
       selectedEvent = evt;
 
-      document.getElementById("eventTitle").textContent = evt.id;
+      document.getElementById("eventTitle").textContent = evt.EventId;
       document.getElementById("eventGroupName").textContent = evt.GroupName;
       document.getElementById("eventYear").textContent = evt.Year;
       document.getElementById("eventIsRunningText").textContent = evt.IsRunning ? "Yes" : "No";
@@ -377,7 +377,8 @@
       });
 
       const updatedEvent = {
-        id: selectedEvent.id,
+        EventId: selectedEvent.EventId,
+        VersionToken: selectedEvent.VersionToken,
         GroupName: selectedEvent.GroupName,
         Year: selectedEvent.Year,
         Participants: updatedParticipants
@@ -409,7 +410,7 @@
       if (response.ok) {
         alert("Event started! Assignments generated.");
         await loadEvents();
-        showEventEditor(events.find(e => e.id === selectedEvent.id));
+        showEventEditor(events.find(e => e.EventId === selectedEvent.EventId));
       } else {
         alert("Error starting event");
       }
@@ -463,7 +464,8 @@
       }
 
       const newEvent = {
-        id: id,
+        EventId: id,
+        VersionToken: '',
         GroupName: groupName,
         Year: year,
         Participants: participants
@@ -484,7 +486,7 @@
 
       await loadEvents();
 
-      const created = events.find(e => e.id === id);
+      const created = events.find(e => e.EventId === id);
       if (created) {
         showEventEditor(created);
       }

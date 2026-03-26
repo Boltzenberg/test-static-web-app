@@ -69,7 +69,8 @@
       s.className = msg ? ('status ' + (isError ? 'error' : '')) : 'status';
     }
 
-    function updateCheckboxes(groceryListItems) {
+    function updateCheckboxes(response) {
+      const groceryListItems = response.Items ?? response;
       const container = document.getElementById('checkboxContainer');
 
       while (container.firstChild) {
@@ -83,21 +84,21 @@
         container.appendChild(empty);
       } else {
         groceryListItems.sort((a, b) =>
-          a.Item.toLowerCase().localeCompare(b.Item.toLowerCase())
+          a.toLowerCase().localeCompare(b.toLowerCase())
         );
 
-        groceryListItems.forEach((element, index) => {
+        groceryListItems.forEach((item, index) => {
           const wrapper = document.createElement('div');
           wrapper.className = 'checkbox-item';
 
           const checkbox = document.createElement('input');
           checkbox.type = 'checkbox';
           checkbox.id = 'checkbox' + index;
-          checkbox.dataset.json = JSON.stringify(element);
+          checkbox.dataset.item = item;
 
           const label = document.createElement('label');
           label.htmlFor = checkbox.id;
-          label.textContent = element.Item;
+          label.textContent = item;
 
           wrapper.appendChild(checkbox);
           wrapper.appendChild(label);
@@ -119,7 +120,7 @@
       let toAdd = [];
       if (multiAdd && multiAdd.trim()) {
         multiAdd.split(/\r?\n/).forEach(line => {
-          if (line.trim()) toAdd.push({ Item: line.trim() });
+          if (line.trim()) toAdd.push(line.trim());
         });
       }
 
@@ -127,7 +128,7 @@
       const container = document.getElementById('checkboxContainer');
       Array.from(container.querySelectorAll('input[type="checkbox"]')).forEach(el => {
         if (el.checked) {
-          toRemove.push(JSON.parse(el.dataset.json));
+          toRemove.push(el.dataset.item);
         }
       });
 
@@ -159,7 +160,7 @@
           showStatus('Failed to load list: ' + response.statusText, true);
         }
       } catch (error) {
-        showStatus('Exception loading list (' + data + '): ' + error, true);
+        showStatus('Exception loading list (' + LIST_ID + '): ' + error, true);
       }
 
       loadingDiv.style.display = 'none';

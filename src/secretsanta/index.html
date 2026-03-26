@@ -77,8 +77,8 @@
 
       events.forEach(evt => {
         const opt = document.createElement("option");
-        opt.value = evt.id;
-        opt.textContent = evt.id;
+        opt.value = evt.EventId;
+        opt.textContent = evt.EventId;
         dropdown.appendChild(opt);
       });
 
@@ -110,7 +110,7 @@
 
       if (!id) return;
 
-      selectedEvent = events.find(evt => evt.id === id);
+      selectedEvent = events.find(evt => evt.EventId === id);
 
       // Populate participants
       participantDropdown.innerHTML = "<option value=''>-- Select Your Name --</option>";
