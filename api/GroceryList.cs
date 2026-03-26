@@ -85,8 +85,8 @@ namespace Boltzenberg.Functions
                         return new BadRequestResult();
                     }
 
-                    var domain = new Domain.GroceryList { ListId = result.Entity.id, Items = result.Entity.Items };
-                    result.Entity.Items = domain.Apply(payload.ToAdd, payload.ToRemove).Items.ToList();
+                    var domain = new Domain.GroceryList { ListId = result.Entity.id, Items = result.Entity.ToItemStrings() };
+                    result.Entity.SetItems(domain.Apply(payload.ToAdd, payload.ToRemove).Items);
                     result = await _store.UpdateAsync(result.Entity);
                 } while (result.Code == ResultCode.PreconditionFailed);
             }
@@ -101,7 +101,7 @@ namespace Boltzenberg.Functions
                 return new BadRequestResult();
             }
 
-            var response = new GroceryListResponse(result.Entity.id, result.Entity.Items);
+            var response = new GroceryListResponse(result.Entity.id, result.Entity.ToItemStrings());
             return new OkObjectResult(JsonSerializer.Serialize(response));
         }
     }

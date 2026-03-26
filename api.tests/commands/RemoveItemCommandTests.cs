@@ -14,7 +14,7 @@ namespace ApiTests.Commands
                 AppId = GroceryListDocument.PartitionKey,
                 id = "Test",
                 _etag = "etag-1",
-                Items = items.ToList()
+                Items = items.Select(s => new GroceryListDocument.ItemRecord { Item = s }).ToList()
             };
 
         private static CommandContext MakeContext(FakeGroceryListStore store, string? arg = null)
@@ -40,8 +40,8 @@ namespace ApiTests.Commands
             Assert.True(result.Success);
             var doc = store.GetCurrentDoc();
             Assert.NotNull(doc);
-            Assert.DoesNotContain("Bananas", doc!.Items);
-            Assert.Contains("Apples", doc.Items);
+            Assert.DoesNotContain("Bananas", doc!.ToItemStrings());
+            Assert.Contains("Apples", doc.ToItemStrings());
         }
 
         [Fact]
@@ -56,7 +56,7 @@ namespace ApiTests.Commands
             Assert.True(result.Success);
             var doc = store.GetCurrentDoc();
             Assert.NotNull(doc);
-            Assert.DoesNotContain("Bananas", doc!.Items);
+            Assert.DoesNotContain("Bananas", doc!.ToItemStrings());
         }
 
         [Fact]

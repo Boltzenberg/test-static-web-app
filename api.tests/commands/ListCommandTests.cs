@@ -14,7 +14,7 @@ namespace ApiTests.Commands
                 AppId = GroceryListDocument.PartitionKey,
                 id = "Test",
                 _etag = "etag-1",
-                Items = items.ToList()
+                Items = items.Select(s => new GroceryListDocument.ItemRecord { Item = s }).ToList()
             };
 
         private static CommandContext MakeContext(FakeGroceryListStore store)

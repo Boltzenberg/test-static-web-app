@@ -30,7 +30,7 @@ namespace Boltzenberg.Functions.Commands.Telegram
 
             var sb = new StringBuilder();
             sb.AppendLine("🟢");
-            foreach (var item in result.Entity.Items)
+            foreach (var item in result.Entity.ToItemStrings())
             {
                 sb.AppendLine(item);
             }

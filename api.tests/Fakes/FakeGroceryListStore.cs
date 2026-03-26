@@ -29,7 +29,7 @@ namespace ApiTests.Fakes
                 AppId = _doc.AppId,
                 id = _doc.id,
                 _etag = _doc._etag,
-                Items = new List<string>(_doc.Items)
+                Items = _doc.Items.Select(i => new GroceryListDocument.ItemRecord { Item = i.Item }).ToList()
             };
             return Task.FromResult(new OperationResult<GroceryListDocument>(ResultCode.Success, copy, null));
         }
@@ -43,7 +43,7 @@ namespace ApiTests.Fakes
                 AppId = entity.AppId,
                 id = entity.id,
                 _etag = "new-etag",
-                Items = new List<string>(entity.Items)
+                Items = entity.Items.Select(i => new GroceryListDocument.ItemRecord { Item = i.Item }).ToList()
             };
             return Task.FromResult(new OperationResult<GroceryListDocument>(ResultCode.Success, _doc, null));
         }

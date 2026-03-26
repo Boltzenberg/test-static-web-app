@@ -41,11 +41,10 @@ namespace Boltzenberg.Functions.Commands.Telegram
                 var domainList = new Domain.GroceryList
                 {
                     ListId = result.Entity.id,
-                    Items = result.Entity.Items
+                    Items = result.Entity.ToItemStrings()
                 };
 
-                var updated = domainList.Apply(new[] { itemToAdd }, Array.Empty<string>());
-                result.Entity.Items = updated.Items.ToList();
+                result.Entity.SetItems(domainList.Apply(new[] { itemToAdd }, Array.Empty<string>()).Items);
 
                 result = await _store.UpdateAsync(result.Entity);
             } while (result.Code == ResultCode.PreconditionFailed);
@@ -58,7 +57,7 @@ namespace Boltzenberg.Functions.Commands.Telegram
 
             var sb = new StringBuilder();
             sb.AppendLine("🟢");
-            foreach (var item in result.Entity.Items)
+            foreach (var item in result.Entity.ToItemStrings())
             {
                 sb.AppendLine(item);
             }

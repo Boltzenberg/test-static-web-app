@@ -14,7 +14,7 @@ namespace ApiTests.Commands
                 AppId = GroceryListDocument.PartitionKey,
                 id = "Test",
                 _etag = "etag-1",
-                Items = items.ToList()
+                Items = items.Select(s => new GroceryListDocument.ItemRecord { Item = s }).ToList()
             };
 
         private static CommandContext MakeContext(FakeGroceryListStore store, string? arg = null)
@@ -40,7 +40,7 @@ namespace ApiTests.Commands
             Assert.True(result.Success);
             var doc = store.GetCurrentDoc();
             Assert.NotNull(doc);
-            Assert.Contains("Bananas", doc!.Items);
+            Assert.Contains("Bananas", doc!.ToItemStrings());
         }
 
         [Fact]
@@ -107,9 +107,9 @@ namespace ApiTests.Commands
             Assert.True(result.Success);
             var doc = store.GetCurrentDoc();
             Assert.NotNull(doc);
-            Assert.Contains("peanut butter", doc!.Items);
-            Assert.DoesNotContain("peanut", doc!.Items.Where(i => i == "peanut"));
-            Assert.DoesNotContain("butter", doc!.Items.Where(i => i == "butter"));
+            Assert.Contains("peanut butter", doc!.ToItemStrings());
+            Assert.DoesNotContain("peanut", doc!.ToItemStrings().Where(i => i == "peanut"));
+            Assert.DoesNotContain("butter", doc!.ToItemStrings().Where(i => i == "butter"));
         }
 
         [Fact]
@@ -124,7 +124,7 @@ namespace ApiTests.Commands
             Assert.True(result.Success);
             var doc = store.GetCurrentDoc();
             Assert.NotNull(doc);
-            Assert.Single(doc!.Items.Where(i => i.Equals("Apples", StringComparison.OrdinalIgnoreCase)));
+            Assert.Single(doc!.ToItemStrings().Where(i => i.Equals("Apples", StringComparison.OrdinalIgnoreCase)));
         }
     }
 }
