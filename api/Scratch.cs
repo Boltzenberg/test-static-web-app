@@ -54,6 +54,7 @@ public class Scratch
     private async Task<IActionResult> ThrowExceptionLoggingTest(HttpRequest req, LogBuffer log)
     {
         log.Info("Adding a log line before throwing the exception");
+        await Task.Delay(1);
         throw new InvalidOperationException("This is the message to the InvalidOperationException");
     }
 }
