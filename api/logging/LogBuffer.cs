@@ -32,7 +32,6 @@ namespace Boltzenberg.Functions.Logging
         public void Info(string line)
         {
             this.sbLog.AppendLine(string.Format("*INFO* — `{0}`: {1}", DateTime.UtcNow.ToString("o"), line));
-            this.writeOnClose = true;
         }
 
         public void Error(string format, params object[] args)
