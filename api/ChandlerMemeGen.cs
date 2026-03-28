@@ -53,14 +53,14 @@ namespace Boltzenberg.Functions
                 ["text1"] = bottom ?? ""
             });
 
+            log.Info("Generating Chandler Meme with top text '{0}' and bottom text '{1}'", top, bottom ?? "");
             var apiResponse = await _http.PostAsync("https://api.imgflip.com/caption_image", form);
             var jsonString = await apiResponse.Content.ReadAsStringAsync();
-            Console.WriteLine(jsonString);
             var json = JsonSerializer.Deserialize<ImgflipResponse>(jsonString);
-            Console.WriteLine(json.ToString());
 
             if (json == null || !json.success || json.data == null || json.data.url == null)
             {
+                log.Error("Failed: {0}", json?.error_message ?? "No error message specified");
                 return new BadRequestObjectResult(json?.error_message ?? "Imgflip API error");
             }
 
@@ -70,6 +70,7 @@ namespace Boltzenberg.Functions
 
             if (!imageResponse.IsSuccessStatusCode)
             {
+                log.Error("Failed to fetch the generated image from '{0}'", imageUrl);
                 return new ObjectResult("Failed to fetch generated image.")
                 {
                     StatusCode = StatusCodes.Status502BadGateway
