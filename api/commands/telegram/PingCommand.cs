@@ -9,7 +9,7 @@ namespace Boltzenberg.Functions.Commands.Telegram
 
         public Task<CommandResult> ExecuteAsync(CommandContext context)
         {
-            return Task.FromResult(CommandResult.Ok("🟢 Pong"));
+            return Task.FromResult(CommandResult.OkMessage("🟢 Pong"));
         }
     }
 }

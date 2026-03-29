@@ -60,8 +60,25 @@ namespace Boltzenberg.Functions.Commands.Telegram
             };
 
             var result = await command.ExecuteAsync(context);
-            await TelegramComms.SendAsync(chatId.ToString(), result.Message);
-            return result.Success ? "ok" : "error";
+            if (!result.Success)
+            {
+                await TelegramComms.SendAsync(chatId.ToString(), result.Message);
+                return "error";
+            }
+            else
+            {
+                if (!string.IsNullOrEmpty(result.Message))
+                {
+                    await TelegramComms.SendAsync(chatId.ToString(), result.Message);
+                }
+            
+                if (!string.IsNullOrEmpty(result.PhotoUrl))
+                {
+                    await TelegramComms.SendPhotoAsync(chatId.ToString(), result.PhotoUrl);
+                }
+
+                return "ok";
+            }
         }
     }
 }

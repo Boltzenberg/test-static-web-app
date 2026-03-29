@@ -35,7 +35,7 @@ namespace Boltzenberg.Functions.Commands.Telegram
                 sb.AppendLine(item);
             }
 
-            return CommandResult.Ok(sb.ToString());
+            return CommandResult.OkMessage(sb.ToString());
         }
     }
 }

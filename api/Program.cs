@@ -25,6 +25,7 @@ builder.Services.AddSingleton<IJsonStore<AuthLogDocument>, JsonStore<AuthLogDocu
 
 // Telegram commands
 builder.Services.AddSingleton<ICommand, PingCommand>();
+builder.Services.AddSingleton<ICommand, ChandlerCommand>();
 builder.Services.AddSingleton<ICommand>(sp =>
     new AddItemCommand(sp.GetRequiredService<IJsonStore<GroceryListDocument>>()));
 builder.Services.AddSingleton<ICommand>(sp =>

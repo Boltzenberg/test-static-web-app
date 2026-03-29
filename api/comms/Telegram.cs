@@ -21,6 +21,37 @@ namespace Boltzenberg.Functions.Comms
             Error
         }
 
+        public static async Task SendPhotoAsync(string chatId, string imageUrl)
+        {
+            if (string.IsNullOrWhiteSpace(Token) || string.IsNullOrWhiteSpace(chatId))
+            {
+                Console.WriteLine("Telegram logging skipped: missing TELEGRAM_TOKEN or TELEGRAM_CHANNEL_ID");
+                return;
+            }
+
+            var payload = new
+            {
+                chat_id = chatId,
+                photo = imageUrl
+            };
+
+            var apiUrl = $"https://api.telegram.org/bot{Token}/sendPhoto";
+
+            var json = JsonSerializer.Serialize(payload);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            try
+            {
+                var response = await _http.PostAsync(apiUrl, content);
+                response.EnsureSuccessStatusCode();
+            }
+            catch (Exception ex)
+            {
+                // Avoid recursive logging loops
+                Console.WriteLine($"Telegram send failed: {ex.Message}");
+            }
+        }
+
         public static async Task SendAsync(string chatId, string message)
         {
             if (string.IsNullOrWhiteSpace(Token) || string.IsNullOrWhiteSpace(chatId))
