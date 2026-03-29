@@ -10,7 +10,16 @@ namespace Boltzenberg.Functions.Commands.Telegram
 
         public async Task<CommandResult> ExecuteAsync(CommandContext context)
         {
-            string url = await ImgFlip.ChandlerizeUrlAsync(context.Arg ?? string.Empty, string.Empty, context.Log);
+            string arg = context.Arg ?? string.Empty;
+            if (string.IsNullOrEmpty(arg))
+            {
+                return CommandResult.Fail("You need to specify a caption for the meme!");
+            }
+
+            int delimiterIndex = arg.IndexOf('|');
+            string top = (delimiterIndex == -1) ? arg : arg.Substring(0, delimiterIndex - 1).Trim();
+            string bottom = (delimiterIndex == -1) ? string.Empty : arg.Substring(delimiterIndex + 1).Trim();
+            string url = await ImgFlip.ChandlerizeUrlAsync(top, bottom, context.Log);
             return CommandResult.OkPhoto(url);
         }
     }
