@@ -82,9 +82,9 @@ namespace Boltzenberg.Functions.Logging
             }
         }
 
-        public static async Task<IActionResult> Wrap(string operationName, HttpRequest req, Func<HttpRequest, LogBuffer, Task<IActionResult>> wrapped)
+        public static async Task<IActionResult> Wrap(string operationName, HttpRequest req, Func<HttpRequest, LogBuffer, Task<IActionResult>> wrapped, bool writeOnClose = false)
         {
-            LogBuffer log = new LogBuffer(operationName);
+            LogBuffer log = new LogBuffer(operationName, writeOnClose);
 
             try
             {

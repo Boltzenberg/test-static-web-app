@@ -19,8 +19,6 @@ namespace Boltzenberg.Functions.Commands.Telegram
 
         public async Task<CommandResult> ExecuteAsync(CommandContext context)
         {
-            context.Log.Info("Fetching grocery list");
-
             var result = await _store.ReadAsync(GroceryListDocument.PartitionKey, "Test");
             if (result.Code != ResultCode.Success || result.Entity == null)
             {

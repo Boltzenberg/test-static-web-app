@@ -15,7 +15,7 @@ public class Diagnostics
 {
     [Function("SendTestMail")]
     public async Task<IActionResult> SendTestMailUnwrapped([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest req) =>
-        await LogBuffer.Wrap("SendTestMail", req, SendTestMail);
+        await LogBuffer.Wrap("SendTestMail", req, SendTestMail, true);
     private async Task<IActionResult> SendTestMail(HttpRequest req, LogBuffer log)
     {
         string? summary = req.Query["summary"];
