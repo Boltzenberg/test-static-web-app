@@ -21,7 +21,7 @@ namespace Boltzenberg.Functions
 
         [Function("CreateGroceryList")]
         public async Task<IActionResult> CreateGroceryListUnwrapped([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequest req) =>
-            await LogBuffer.Wrap("CreateGroceryList", req, CreateGroceryList);
+            await LogBuffer.Wrap("CreateGroceryList", req, CreateGroceryList, true);
         private async Task<IActionResult> CreateGroceryList(HttpRequest req, LogBuffer log)
         {
             string? listId = req.Headers["X-List-ID"];
@@ -45,7 +45,7 @@ namespace Boltzenberg.Functions
 
         [Function("UpdateGroceryList")]
         public async Task<IActionResult> UpdateGroceryListUnwrapped([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequest req) =>
-            await LogBuffer.Wrap("UpdateGroceryList", req, UpdateGroceryList);
+            await LogBuffer.Wrap("UpdateGroceryList", req, UpdateGroceryList, true);
         private async Task<IActionResult> UpdateGroceryList(HttpRequest req, LogBuffer log)
         {
             string? listId = req.Headers["X-List-ID"];
