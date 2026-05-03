@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Snow White's Diary</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #2b1d0e;
+    --ink-faded: #5c4433;
+    --page: #fdf6e3;
+    --page-aged: #ede0c0;
+    --red-ink: #8b2020;
+    --blue-ink: #1a3a5c;
+    --pencil: #6b6b6b;
+    --forest: #2d5a1b;
+    --blush: #b05050;
+    --rule-line: rgba(100,80,60,0.12);
+    --margin-line: rgba(200,100,80,0.2);
+  }
+
+  html, body { height: 100%; width: 100%; overflow: hidden; font-family: 'Caveat', cursive; background: #2a1f14; }
+
+  /* ─── RULED PAPER BASE ─── */
+  .slide {
+    position: absolute; inset: 0; display: none; flex-direction: column;
+    justify-content: flex-start; align-items: flex-start;
+    padding: 2.4rem 3.5rem 5rem 6.2rem;
+    background-color: var(--page);
+    background-image:
+      linear-gradient(90deg, transparent 4.4rem, var(--margin-line) 4.4rem, var(--margin-line) calc(4.4rem + 1px), transparent calc(4.4rem + 1px)),
+      repeating-linear-gradient(180deg, transparent, transparent 1.74rem, var(--rule-line) 1.74rem, var(--rule-line) calc(1.74rem + 1px));
+    overflow-x: hidden; overflow-y: auto; opacity: 0; transition: opacity 0.4s ease;
+    scrollbar-width: thin; scrollbar-color: rgba(176,80,80,0.35) transparent;
+  }
+  .slide::-webkit-scrollbar { width: 6px; }
+  .slide::-webkit-scrollbar-track { background: transparent; }
+  .slide::-webkit-scrollbar-thumb { background: rgba(176,80,80,0.3); border-radius: 3px; }
+  .slide::-webkit-scrollbar-thumb:hover { background: rgba(176,80,80,0.55); }
+  .slide::after {
+    content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0;
+    background: radial-gradient(ellipse at top left, rgba(180,140,80,0.06) 0%, transparent 55%),
+                radial-gradient(ellipse at bottom right, rgba(160,120,60,0.05) 0%, transparent 45%);
+  }
+  .slide.active { display: flex; opacity: 1; }
+  .slide > * { position: relative; z-index: 1; width: 100%; }
+
+  /* ─── TYPOGRAPHY ─── */
+  .diary-date { font-size: 1.1rem; color: var(--ink-faded); margin-bottom: 0.25rem; letter-spacing: 0.02em; }
+  .diary-entry { font-size: 1.45rem; line-height: 1.9rem; color: var(--ink); max-width: 830px; }
+  .diary-entry p { margin-bottom: 0.9rem; font-size: inherit; line-height: inherit; color: var(--ink); }
+  .diary-entry p:last-child { margin-bottom: 0; }
+
+  .underline { text-decoration: underline; text-underline-offset: 3px; }
+  .strikethrough { text-decoration: line-through; color: var(--ink-faded); }
+  em { font-style: italic; color: var(--ink-faded); }
+  strong { font-weight: 700; color: var(--ink); }
+  .red { color: var(--red-ink); font-weight: 700; }
+  .blue { color: var(--blue-ink); }
+  .forest-c { color: var(--forest); font-weight: 700; }
+  .pencil { color: var(--pencil); font-style: italic; }
+  .angry { color: var(--red-ink); font-size: 1.1em; }
+
+  .margin-note {
+    position: absolute; left: 0.45rem; top: 5.5rem;
+    font-size: 0.82rem; color: var(--blush);
+    writing-mode: vertical-rl; transform: rotate(180deg);
+    letter-spacing: 0.07em; z-index: 2; opacity: 0.72;
+  }
+  .page-num {
+    position: absolute; bottom: 1.3rem; right: 2rem;
+    font-size: 0.9rem; color: var(--ink-faded); opacity: 0.38; z-index: 2;
+  }
+
+  /* ─── COVER ─── */
+  #slide2 { background-color: #1a120a !important; background-image: none !important; padding: 0 !important; justify-content: center !important; align-items: center !important; overflow: hidden !important; }
+  #slide2::after { display: none; }
+  .diary-cover {
+    width: min(400px, 78vw); aspect-ratio: 3/4.2;
+    background: linear-gradient(145deg, #8b2e10 0%, #6e2208 60%, #5c1e08 100%);
+    border-radius: 3px 14px 14px 3px;
+    box-shadow: -7px 0 0 #4a1806, -13px 0 0 #2d0e02, 0 12px 50px rgba(0,0,0,0.75), inset 2px 0 30px rgba(0,0,0,0.2);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    position: relative; overflow: hidden;
+  }
+  .diary-cover::before { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(172deg, transparent, transparent 4px, rgba(0,0,0,0.03) 4px, rgba(0,0,0,0.03) 5px); }
+  .diary-cover::after { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 20px; background: linear-gradient(90deg, #2d0e02 0%, #5c1e08 70%, transparent 100%); }
+  .cover-label {
+    background: #fdf6e3; width: 72%; padding: 1.3rem 1rem 1.1rem;
+    text-align: center; border-radius: 2px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.45); transform: rotate(-0.8deg);
+    position: relative; z-index: 1;
+  }
+  .cover-label .private { font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--red-ink); font-weight: 700; margin-bottom: 0.3rem; }
+  .cover-label h1 { font-size: 2rem; font-weight: 700; color: var(--ink); line-height: 1.1; margin-bottom: 0.25rem; }
+  .cover-label .cover-owner { font-size: 0.9rem; color: var(--ink-faded); border-top: 1px solid var(--page-aged); margin-top: 0.55rem; padding-top: 0.4rem; line-height: 1.4; }
+  .cover-flowers { font-size: 1.2rem; margin-bottom: 0.3rem; letter-spacing: 0.25rem; }
+
+  /* ─── DWARF GRID ─── */
+  .dwarf-diary-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.5rem; width: 100%; max-width: 810px; margin-top: 0.4rem; }
+  .dwarf-diary-card { background: rgba(255,255,255,0.72); border: 1px solid var(--page-aged); border-radius: 3px; padding: 0.6rem 0.2rem; text-align: center; box-shadow: 1px 1px 4px rgba(0,0,0,0.05); }
+  .dwarf-diary-card .emoji { font-size: 1.8rem; display: block; margin-bottom: 0.12rem; }
+  .dwarf-diary-card .dname { font-size: 0.9rem; font-weight: 700; color: var(--ink); line-height: 1.2; }
+  .dwarf-diary-card .dtrait { font-size: 0.72rem; color: var(--blush); margin-top: 0.08rem; font-style: italic; }
+
+  /* ─── SINGLE FEUD LAYOUT (full page story) ─── */
+  .feud-page { max-width: 760px; width: 100%; }
+  .feud-headline {
+    font-size: 1.75rem; font-weight: 700; color: var(--ink);
+    border-bottom: 2px solid var(--blush); padding-bottom: 0.3rem; margin-bottom: 0.6rem;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .feud-headline.triple { border-bottom-color: var(--forest); }
+
+  /* ─── DRAWN SEPARATOR ─── */
+  .divider {
+    width: 100%; max-width: 700px; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(100,80,60,0.25) 20%, rgba(100,80,60,0.25) 80%, transparent);
+    margin: 0.7rem 0;
+  }
+
+  /* ─── STICKY NOTE ─── */
+  .sticky {
+    background: #fffde7; border: 1px solid #e6d44a; padding: 0.65rem 0.85rem;
+    border-radius: 2px; box-shadow: 2px 3px 7px rgba(0,0,0,0.1);
+    max-width: 300px; font-size: 1.15rem; line-height: 1.5; color: var(--ink);
+  }
+  .sticky.blue-note { background: #e8f4fd; border-color: #90caf9; }
+  .sticky.green-note { background: #f1f8e9; border-color: #aed581; }
+
+  /* ─── MATH REVEAL BOX ─── */
+  .math-reveal {
+    border: 2px solid var(--blue-ink); border-radius: 3px;
+    padding: 0.85rem 1.2rem; background: rgba(26,58,92,0.04);
+    max-width: 700px; margin-top: 0.55rem; position: relative;
+  }
+  .math-reveal::before {
+    content: attr(data-label);
+    position: absolute; top: -0.72rem; right: 1rem;
+    font-size: 0.9rem; color: var(--pencil); font-style: italic;
+    background: var(--page); padding: 0 0.3rem;
+  }
+  .math-reveal p { font-size: 1.28rem; line-height: 1.7; color: var(--blue-ink); margin: 0; }
+  .math-reveal p + p { margin-top: 0.45rem; }
+
+  /* ─── COUNTING ─── */
+  .big-handwritten { font-size: clamp(3.5rem, 9vw, 5.5rem); font-weight: 700; line-height: 1; color: var(--blue-ink); }
+  .counting-step { display: flex; gap: 0.85rem; align-items: flex-start; padding: 0.38rem 0; border-bottom: 1px dashed rgba(100,80,60,0.13); font-size: 1.3rem; line-height: 1.6; color: var(--ink); max-width: 680px; }
+  .counting-step:last-child { border: none; }
+  .step-num { color: var(--blush); font-weight: 700; flex-shrink: 0; width: 1.3rem; }
+
+  /* ─── PROBABILITY TABLE ─── */
+  .prob-table-wrap { overflow-x: auto; max-width: 100%; }
+  table { border-collapse: collapse; font-family: 'Caveat', cursive; font-size: 1.05rem; background: white; border-radius: 3px; overflow: hidden; box-shadow: 1px 2px 10px rgba(0,0,0,0.07); width: 100%; max-width: 740px; }
+  th { background: #2b1d0e; color: #fdf6e3; padding: 0.42rem 0.52rem; font-weight: 600; font-size: 0.95rem; text-align: center; font-family: 'Caveat', cursive; }
+  th.row-header { background: #3a2a1a; color: rgba(253,246,227,0.42); font-size: 0.82rem; }
+  td { padding: 0.4rem 0.52rem; text-align: center; border-bottom: 1px solid #f0e8d5; border-right: 1px solid #f0e8d5; font-size: 1rem; }
+  tr:last-child td { border-bottom: none; }
+  td:first-child { background: #f7edd0; font-weight: 600; color: var(--ink); border-right: 2px solid #e0d0b0; text-align: left; padding-left: 0.65rem; }
+  td.forbidden { background: #f5efef; color: #c9a0a0; font-size: 0.85rem; }
+  td.low-prob { background: #fff8e1; color: #7a5c00; font-weight: 700; }
+  td.high-prob { background: #e8f5e9; color: #2e7d32; font-weight: 700; }
+  td.equal-prob { background: #e3f2fd; color: #1565c0; font-weight: 700; }
+  .table-note { font-size: 1rem; margin-top: 0.5rem; display: flex; gap: 1rem; flex-wrap: wrap; color: var(--ink-faded); }
+  .legend-item { display: flex; align-items: center; gap: 0.28rem; }
+  .legend-dot { width: 11px; height: 11px; border-radius: 2px; flex-shrink: 0; }
+
+  /* ─── INSIGHT CARDS ─── */
+  .insight-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; max-width: 780px; width: 100%; margin-top: 0.3rem; }
+  .insight-card { background: rgba(255,255,255,0.6); border-radius: 3px; padding: 0.85rem 0.95rem; border-top: 3px solid var(--blush); }
+  .insight-card.fair { border-top-color: var(--forest); }
+  .insight-card h3 { font-size: 1.2rem; font-weight: 700; color: var(--ink); margin-bottom: 0.3rem; }
+  .insight-card p { font-size: 1.1rem; line-height: 1.5; color: var(--ink-faded); margin: 0; }
+  .prob-chip { display: inline-block; border-radius: 3px; padding: 0.06rem 0.42rem; font-size: 1rem; font-weight: 700; margin: 0.22rem 0.12rem 0.22rem 0; }
+  .prob-chip.low { background: #fff8e1; color: #7a5c00; border: 1px solid #ffe082; }
+  .prob-chip.high { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+  .prob-chip.eq  { background: #e3f2fd; color: #1565c0; border: 1px solid #90caf9; }
+
+  /* ─── WHY STEPS ─── */
+  .why-step { display: flex; gap: 0.85rem; align-items: flex-start; padding: 0.42rem 0; border-bottom: 1px dashed rgba(100,80,60,0.13); }
+  .why-step:last-child { border: none; }
+  .why-icon { font-size: 1.4rem; flex-shrink: 0; }
+  .why-step h3 { font-size: 1.25rem; font-weight: 700; color: var(--blue-ink); margin-bottom: 0.12rem; }
+  .why-step p { font-size: 1.1rem; line-height: 1.5; color: var(--ink-faded); margin: 0; }
+
+  /* ─── DOC DIALOGUE BUBBLES ─── */
+  .dialogue-block { max-width: 760px; width: 100%; display: flex; flex-direction: column; gap: 0.8rem; }
+  .speech-bubble {
+    position: relative; border-radius: 8px; padding: 0.75rem 1rem;
+    font-size: 1.28rem; line-height: 1.55; max-width: 82%;
+  }
+  .speech-bubble.doc {
+    background: #e8f4fd; border: 1px solid #90caf9; color: var(--blue-ink);
+    align-self: flex-start; border-bottom-left-radius: 2px;
+  }
+  .speech-bubble.sw {
+    background: rgba(255,255,255,0.75); border: 1px solid var(--page-aged); color: var(--ink);
+    align-self: flex-end; border-bottom-right-radius: 2px; text-align: right;
+  }
+  .speech-bubble.sw.long { max-width: 92%; text-align: left; }
+  .speaker-tag { font-size: 0.88rem; font-weight: 700; letter-spacing: 0.08em; margin-bottom: 0.2rem; opacity: 0.65; }
+  .speaker-tag.doc-tag { color: var(--blue-ink); }
+  .speaker-tag.sw-tag { color: var(--blush); text-align: right; }
+
+  /* ─── TAKEAWAY ─── */
+  .takeaway-grid { display: flex; gap: 0.95rem; flex-wrap: wrap; margin-top: 0.55rem; max-width: 650px; }
+  .takeaway-chip { background: rgba(255,255,255,0.65); border: 1px dashed var(--blush); border-radius: 3px; padding: 0.6rem 0.85rem; min-width: 145px; flex: 1; }
+  .takeaway-chip .tnum { font-size: 2.3rem; font-weight: 700; color: var(--blue-ink); line-height: 1; margin-bottom: 0.12rem; }
+  .takeaway-chip p { font-size: 1rem; color: var(--ink-faded); line-height: 1.35; margin: 0; }
+
+  .closing-sig { font-size: 1.8rem; font-weight: 700; color: var(--ink); margin-top: 0.75rem; transform: rotate(-1.2deg); display: inline-block; }
+
+  /* ─── NAV ─── */
+  .nav {
+    position: fixed; bottom: 1.3rem; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 0.65rem; align-items: center; z-index: 100;
+    background: rgba(26,18,10,0.9); padding: 0.42rem 0.95rem; border-radius: 2rem; backdrop-filter: blur(8px);
+  }
+  .nav button { background: none; border: 1px solid rgba(253,246,227,0.2); color: #fdf6e3; font-family: 'Caveat', cursive; font-size: 0.95rem; padding: 0.25rem 0.8rem; border-radius: 1rem; cursor: pointer; transition: all 0.2s; }
+  .nav button:hover { background: rgba(253,246,227,0.1); }
+  .nav .counter { color: rgba(253,246,227,0.38); font-family: 'Caveat', cursive; font-size: 0.82rem; min-width: 3.5rem; text-align: center; }
+
+  /* ─── ANIMATIONS ─── */
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(9px); } to { opacity: 1; transform: translateY(0); } }
+  .slide.active .diary-entry, .slide.active .feud-page, .slide.active .dwarf-diary-card,
+  .slide.active .math-reveal, .slide.active .counting-step, .slide.active table,
+  .slide.active .insight-card, .slide.active .why-step, .slide.active .takeaway-chip,
+  .slide.active .cover-label, .slide.active .big-handwritten, .slide.active .sticky,
+  .slide.active .speech-bubble { animation: fadeUp 0.38s ease both; }
+  .slide.active .dwarf-diary-card:nth-child(2) { animation-delay:.06s }
+  .slide.active .dwarf-diary-card:nth-child(3) { animation-delay:.12s }
+  .slide.active .dwarf-diary-card:nth-child(4) { animation-delay:.18s }
+  .slide.active .dwarf-diary-card:nth-child(5) { animation-delay:.24s }
+  .slide.active .dwarf-diary-card:nth-child(6) { animation-delay:.30s }
+  .slide.active .dwarf-diary-card:nth-child(7) { animation-delay:.36s }
+  .slide.active .counting-step:nth-child(2) { animation-delay:.08s }
+  .slide.active .counting-step:nth-child(3) { animation-delay:.16s }
+  .slide.active .why-step:nth-child(2) { animation-delay:.1s }
+  .slide.active .why-step:nth-child(3) { animation-delay:.2s }
+  .slide.active .takeaway-chip:nth-child(2) { animation-delay:.1s }
+  .slide.active .takeaway-chip:nth-child(3) { animation-delay:.2s }
+  .slide.active .insight-card:nth-child(2) { animation-delay:.12s }
+  .slide.active .speech-bubble:nth-child(2) { animation-delay:.1s }
+  .slide.active .speech-bubble:nth-child(3) { animation-delay:.2s }
+  .slide.active .speech-bubble:nth-child(4) { animation-delay:.3s }
+  .slide.active .speech-bubble:nth-child(5) { animation-delay:.4s }
+  .slide.active .speech-bubble:nth-child(6) { animation-delay:.5s }
+  /* ─── FAIRY TALE WEEKLY ─── */
+  #slide1 { background: #f0ece0 !important; background-image: none !important; padding: 0 !important; overflow-y: auto !important; align-items: flex-start !important; }
+  #slide1::after { display: none; }
+
+  .ftw-page {
+    width: 100%; max-width: 860px; margin: 0 auto;
+    padding: 2.5rem 3rem 3rem;
+    font-family: 'Georgia', serif;
+    color: #1a1208;
+  }
+
+  .ftw-masthead { text-align: center; margin-bottom: 0.5rem; }
+  .ftw-issue { font-family: 'Caveat', cursive; font-size: 0.82rem; letter-spacing: 0.12em; color: #6b5a3a; text-transform: uppercase; margin-bottom: 0.3rem; }
+  .ftw-title {
+    font-family: 'Georgia', serif; font-size: clamp(2.4rem, 5vw, 3.8rem);
+    font-weight: 700; letter-spacing: -0.01em; color: #1a1208;
+    line-height: 1; margin-bottom: 0.2rem;
+  }
+  .ftw-tagline { font-family: 'Georgia', serif; font-style: italic; font-size: 0.82rem; color: #6b5a3a; letter-spacing: 0.04em; }
+
+  .ftw-rule { border: none; border-top: 3px double #1a1208; margin: 0.7rem 0 0; }
+  .ftw-footer-rule { border: none; border-top: 1px solid #b0996a; margin: 1.2rem 0 0.5rem; }
+  .ftw-footer { font-family: 'Georgia', serif; font-size: 0.7rem; color: #8a7050; font-style: italic; text-align: center; }
+
+  .ftw-article { margin-top: 0.9rem; }
+  .ftw-kicker { font-family: 'Caveat', cursive; font-size: 0.78rem; letter-spacing: 0.18em; text-transform: uppercase; color: #8b2020; margin-bottom: 0.35rem; }
+  .ftw-headline {
+    font-family: 'Georgia', serif; font-size: clamp(1.4rem, 3vw, 2rem);
+    font-weight: 700; line-height: 1.18; color: #1a1208;
+    margin-bottom: 0.45rem; max-width: 780px;
+  }
+  .ftw-byline { font-family: 'Georgia', serif; font-size: 0.78rem; color: #6b5a3a; border-top: 1px solid #c8b48a; border-bottom: 1px solid #c8b48a; padding: 0.3rem 0; margin-bottom: 0.9rem; letter-spacing: 0.02em; }
+
+  .ftw-body-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1.8rem; }
+  .ftw-col p { font-family: 'Georgia', serif; font-size: 0.9rem; line-height: 1.68; margin-bottom: 0.75rem; color: #1a1208; }
+  .ftw-col p:last-child { margin-bottom: 0; }
+
+  .ftw-dropcap span {
+    float: left; font-size: 3.8rem; line-height: 0.78; font-weight: 700;
+    margin: 0.05rem 0.25rem 0 0; color: #8b2020; font-family: 'Georgia', serif;
+  }
+
+  .ftw-pullquote {
+    border-top: 2px solid #1a1208; border-bottom: 1px solid #1a1208;
+    padding: 0.65rem 0.5rem; margin: 0.9rem 0;
+    font-family: 'Georgia', serif; font-style: italic;
+    font-size: 1.05rem; line-height: 1.45; color: #1a1208;
+  }
+  .ftw-pullquote-attr { font-size: 0.72rem; font-style: normal; color: #6b5a3a; margin-top: 0.35rem; letter-spacing: 0.03em; }
+
+  .ftw-photo-box { background: #e0d8c4; border: 1px solid #c0b090; padding: 0; margin-bottom: 0.85rem; }
+  .ftw-photo-inner { background: #d4ccb4; height: 110px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; letter-spacing: 0.5rem; color: rgba(100,80,40,0.4); border-bottom: 1px solid #c0b090; }
+  .ftw-photo-caption { font-family: 'Georgia', serif; font-size: 0.72rem; font-style: italic; color: #6b5a3a; padding: 0.4rem 0.6rem; line-height: 1.45; }
+
+  .ftw-continued { font-family: 'Caveat', cursive; font-size: 0.95rem; color: #8b2020; text-align: right; margin-top: 0.75rem; font-style: italic; }
+
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════ SLIDE 1: FAIRY TALE WEEKLY ARTICLE -->
+<div class="slide" id="slide1">
+  <div class="ftw-page">
+
+    <!-- Masthead -->
+    <div class="ftw-masthead">
+      <div class="ftw-issue">Vol. CXLII &nbsp;·&nbsp; Winter Edition &nbsp;·&nbsp; Enchanted Forest Press</div>
+      <div class="ftw-title">Fairy Tale Weekly</div>
+      <div class="ftw-tagline">Illuminating the Realm's Most Extraordinary Stories Since Time Immemorial</div>
+    </div>
+
+    <div class="ftw-rule"></div>
+
+    <!-- Article -->
+    <div class="ftw-article">
+
+      <div class="ftw-kicker">ARCHIVAL DISCOVERIES</div>
+      <h1 class="ftw-headline">Lost Diary of Snow White Found in Cottage Attic,<br>Confirms She Was "Basically Running Everything"</h1>
+      <div class="ftw-byline">By Rumpelstiltskin R. Flintwick, Staff Correspondent &nbsp;|&nbsp; Enchanted Forest Bureau</div>
+
+      <div class="ftw-body-cols">
+        <div class="ftw-col">
+          <p class="ftw-dropcap"><span>A</span> personal diary believed to belong to Snow White — the celebrated princess, amateur naturalist, and full-time cottage manager — has been recovered from a cedar chest in the attic of a seven-bedroom dwelling in the Enchanted Forest, conservators at the Enchanted Forest Archives confirmed this week.</p>
+
+          <p>The diary, which spans several weeks of what archivists believe was a particularly eventful November and December, was discovered during a routine assessment of the property following the recent relocation of its occupants to a larger residence. It was found wrapped in a piece of linen, tucked beneath a broken accordion and what one archivist described as "an alarming number of empty tonic bottles."</p>
+
+          <p>"We knew immediately what we had," said Dr. Fauna Bramblewood, Senior Curator of Enchanted Ephemera at the Archives. "The handwriting is consistent with known samples. The chamomile stains on folios seven through eleven are, frankly, a provenance dream."</p>
+
+          <div class="ftw-pullquote">
+            "The chamomile stains on folios seven through eleven are, frankly, a provenance dream."
+            <div class="ftw-pullquote-attr">— Dr. Fauna Bramblewood, Senior Curator</div>
+          </div>
+
+          <p>The diary offers an intimate window into daily life in the cottage during a period that scholars have long described as "the quiet years" — the stretch between Snow White's famous awakening and her eventual departure for the palace. What emerges is a portrait of a young woman navigating, with considerable patience and the occasional cutting aside, a household in a state of sustained interpersonal chaos.</p>
+        </div>
+
+        <div class="ftw-col">
+          <div class="ftw-photo-box">
+            <div class="ftw-photo-inner">🍎 📖 ✨</div>
+            <div class="ftw-photo-caption">The diary, still faintly smelling of chamomile and what curators believe may be venison stew, is now on display in the Enchanted Forest Archives' Reading Room. Visitors are reminded not to touch the pages. <em>(Enchanted Forest Archives / Staff)</em></div>
+          </div>
+
+          <p>The entries document, among other things, a series of feuds among the cottage's seven dwarf residents — described by Snow White with the weary affection of someone who has read the same argument many times. There is the noise complaint. There is the awards ceremony. There is an incident involving a medicinal tonic, a filing cabinet, and a sneeze of apparently historic proportions.</p>
+
+          <p>"She clearly adored them," said Dr. Bramblewood. "But she was also, very obviously, the only competent adult in that building."</p>
+
+          <p>Perhaps most remarkably, the later pages of the diary reveal Snow White turning her attention to an unexpected subject — one that curators say they did not anticipate finding in a personal journal of this period. Details, however, will have to wait.</p>
+
+          <p>"We're letting the diary speak for itself," Dr. Bramblewood said. "Start at the beginning. It earns its ending."</p>
+
+          <div class="ftw-continued">Continued on the following pages →</div>
+        </div>
+      </div>
+
+    </div>
+    <div class="ftw-footer-rule"></div>
+    <div class="ftw-footer">Fairy Tale Weekly is published weekly during non-enchanted-sleep periods. © Enchanted Forest Press. All rights reserved. Reproduction without a magical license is prohibited.</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ SLIDE 2: DIARY COVER -->
+<div class="slide" id="slide2" style="background-color:#1a120a; background-image:none; padding:0; justify-content:center; align-items:center;">
+  <div class="diary-cover">
+    <div class="cover-label">
+      <div class="cover-flowers">🌸 🌺 🌸</div>
+      <div class="private">✦ Private ✦ Do Not Read ✦</div>
+      <h1>My Diary</h1>
+      <div class="cover-owner">Property of Snow White<br><span style="font-size:0.8rem;color:#a08060;">The Cottage, Enchanted Forest</span></div>
+    </div>
+    <div style="position:absolute;bottom:1.3rem;right:1.8rem;font-size:1.35rem;opacity:0.32;">🍎</div>
+    <div style="position:absolute;top:1.1rem;left:1.7rem;font-size:0.8rem;opacity:0.22;color:#fdf6e3;writing-mode:vertical-rl;letter-spacing:0.1em;">year of our lord…</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ SLIDE 3: THE BOYS -->
+<div class="slide" id="slide3">
+  <div class="diary-date">November 1st — Morning 🍂</div>
+  <div class="margin-note">the whole gang</div>
+  <div class="diary-entry" style="margin-bottom:0.55rem;">
+    <p>It is November, and the leaves are down, and the cottage smells of wood smoke and whatever Dopey knocked over this morning. <span class="pencil">(Soup, I think. The ceiling is involved.)</span> I want to record who lives here, for my own peace of mind, because I find it helpful to remember that I love them.</p>
+  </div>
+  <div class="dwarf-diary-grid">
+    <div class="dwarf-diary-card"><span class="emoji">😤</span><div class="dname">Grumpy</div><div class="dtrait">professionally cranky</div></div>
+    <div class="dwarf-diary-card"><span class="emoji">😊</span><div class="dname">Happy</div><div class="dtrait">relentlessly sunny</div></div>
+    <div class="dwarf-diary-card"><span class="emoji">😴</span><div class="dname">Sleepy</div><div class="dtrait">asleep right now</div></div>
+    <div class="dwarf-diary-card"><span class="emoji">😬</span><div class="dname">Bashful</div><div class="dtrait">easily wounded</div></div>
+    <div class="dwarf-diary-card"><span class="emoji">🤧</span><div class="dname">Sneezy</div><div class="dtrait">a liability indoors</div></div>
+    <div class="dwarf-diary-card"><span class="emoji">🤓</span><div class="dname">Doc</div><div class="dtrait">thinks he's in charge</div></div>
+    <div class="dwarf-diary-card"><span class="emoji">💤</span><div class="dname">Dopey</div><div class="dtrait">loveable chaos agent</div></div>
+  </div>
+  <div class="diary-entry" style="margin-top:0.65rem;">
+    <p>Seven dwarfs. I love every single one of them. They go to the mine each morning, they come home, they eat my cooking, and — mostly — they get along. It is a good life. A quiet life.</p>
+    <p>Nothing could possibly go wrong.</p>
+  </div>
+  <div class="page-num">2</div>
+</div>
+
+<!-- ══════════════════════════════════════ SLIDE 3: GRUMPY VS HAPPY -->
+<div class="slide" id="slide4">
+  <div class="diary-date">November 10th — After Dinner 😤</div>
+  <div class="margin-note">the whistling incident</div>
+  <div class="feud-page">
+    <div class="feud-headline">😤 vs 😊 &nbsp; The Whistling Incident</div>
+    <div class="diary-entry">
+      <p>Something has happened. Grumpy has <span class="underline">officially declared war</span> on Happy, and I am caught in the middle holding a dish towel.</p>
+      <p>It started, as most things do, in the mine. Happy was whistling — which, yes, he does constantly, but he has always done this, and it has always been fine, and the birds like it. But today Grumpy was trying to concentrate on a particularly stubborn vein of sapphires, and Happy was right beside him whistling <em>"Hi-Ho"</em> in a cheerful loop, and something in Grumpy just… <strong>snapped.</strong></p>
+      <p>He filed a formal noise complaint. In writing. With a wax seal. He slid it under my bedroom door at six in the morning. It was three pages long and referenced "psychological damages" and "loss of sapphire productivity estimated at four carats." I could not figure out where he got the wax.</p>
+      <p>Happy, when I told him, <em>laughed so hard he cried.</em> Which I had to admit was also a bit funny. But I did not say that.</p>
+      <p>I told Grumpy I would "look into it." I have no intention of looking into it. <span class="pencil">(This is called diplomacy.)</span></p>
+    </div>
+    <div style="margin-top:0.7rem; display:flex; gap:1rem; align-items:flex-start; flex-wrap:wrap;">
+      <div class="sticky" style="transform:rotate(-2deg);">
+        Official Tally:<br>
+        Noise complaints filed: <strong>7</strong><br>
+        Happy's reaction each time: 😂<br>
+        Grumpy's reaction to that: 😤😤
+      </div>
+      <div class="diary-entry" style="flex:1; min-width:200px; margin-top:0.2rem;">
+        <p>I worry about this. Grumpy has always been grumpy — it is in the name, it is practically a profession — but there is a new <em>edge</em> to it lately. Like he is one whistled chorus away from something irreversible. I hope it passes.</p>
+      </div>
+    </div>
+  </div>
+  <div class="page-num">3</div>
+</div>
+
+<!-- ══════════════════════════════════════ SLIDE 4: SLEEPY VS BASHFUL -->
+<div class="slide" id="slide5">
+  <div class="diary-date">November 17th — Evening 🕯️</div>
+  <div class="margin-note">three years of grudge</div>
+  <div class="feud-page">
+    <div class="feud-headline">😴 vs 😬 &nbsp; The Awards Ceremony Catastrophe</div>
+    <div class="diary-entry">
+      <p>Bashful is not speaking to Sleepy again. Or rather, Bashful is not speaking to Sleepy <em>still,</em> because this is not a new feud, this is a <strong>three-year-old feud</strong> that has never been resolved and probably never will be.</p>
+      <p>What happened was: the Enchanted Forest Gem-of-the-Year Awards, three years ago November. Bashful had been nominated in the category of "Outstanding Discovery: Moonstone." He had prepared a speech. He had <em>practiced</em> the speech. He told me about it in advance, twice, and I could tell he was nervous and proud in equal measure.</p>
+      <p>He won. He went up to the podium. He began his speech — and there, in the front row, <strong>Sleepy fell completely asleep.</strong> Audibly. The snoring was described by multiple attendees as "resonant." The award presenter paused mid-sentence. A bird landed on Sleepy's hat and stayed there for the entire acceptance speech.</p>
+      <p>Bashful blushed so hard his hat slid down over his eyes. He has not forgiven Sleepy. Sleepy, for his part, says he <em>"remembers it fondly"</em> because he had a very nice dream during Bashful's speech, which is genuinely the worst thing he could have said.</p>
+    </div>
+    <div style="margin-top:0.65rem;">
+      <div class="sticky" style="transform:rotate(1.5deg); display:inline-block;">
+        "It was a lovely dream." — Sleepy<br>
+        <span class="red">"I will never forgive him." — Bashful</span>
+      </div>
+    </div>
+    <div class="diary-entry" style="margin-top:0.6rem;">
+      <p>I tried to raise it with Sleepy at breakfast. He blinked at me slowly and said, <em>"Has it really been three years?"</em> and then fell asleep in his porridge. I am choosing to interpret this as remorse.</p>
+      <p>The cottage feels tenser than usual. Grumpy is still filing complaints. Now Bashful won't sit in the same room as Sleepy. Meals are becoming a logistical puzzle. I am starting to think someone needs to do something before this all calcifies permanently.</p>
+    </div>
+  </div>
+  <div class="page-num">4</div>
+</div>
+
+<!-- ══════════════════════════════════════ SLIDE 5: THE TRIPLE FEUD -->
+<div class="slide" id="slide6">
+  <div class="diary-date">November 24th — I Can't Even 🫖</div>
+  <div class="margin-note">the big one</div>
+  <div class="feud-page">
+    <div class="feud-headline triple">🤧 vs 🤓 vs 💤 &nbsp; The Tonic Catastrophe</div>
+    <div class="diary-entry">
+      <p>I don't even know where to begin. I'm going to need more tea. <span class="pencil">(I'm already on my third cup.)</span></p>
+      <p>Doc had been working for weeks on what he called a "proprietary sneeze-suppression tonic" for Sneezy, who, bless him, had recently sneezed during a very sensitive gemstone appraisal and sent six emeralds down the back of the fireplace. The tonic was apparently very delicate — Doc had it in a small brown bottle on the kitchen shelf, next to the cooking sherry, labeled <em>"FOR SNEEZY — DO NOT DRINK."</em></p>
+      <p>Dopey drank it. <strong>He thought it was the cooking sherry.</strong> Nobody can explain this because the label was very clear. Dopey says he cannot read cursive. This is possibly true.</p>
+      <p>What followed was the single most catastrophic sneeze in recorded cottage history. Dopey, now in possession of months of Sneezy's suppressed sneezing in one concentrated medicinal dose, sneezed <span class="angry">so hard and for so long</span> that he destroyed Doc's entire filing cabinet. Seven years of medical notes. Gone. Scattered across the kitchen like the world's most depressing confetti.</p>
+      <p>Doc is furious at Dopey for drinking it. Sneezy is furious at Doc for creating a tonic that, as Sneezy put it, <em>"clearly does not work and actually makes everything worse."</em> Dopey is furious at no one because Dopey lacks the emotional architecture for sustained fury, but he did look a bit sheepish for almost twenty minutes.</p>
+      <p>None of the three are speaking. The infirmary smells of elderflower, regret, and what I believe are the remnants of Doc's notes on seasonal rhinitis.</p>
+    </div>
+    <div class="diary-entry" style="margin-top:0.5rem;">
+      <p>I have now attempted to mediate three separate feuds in three weeks. I am one person. I made venison stew tonight and no one mentioned it, because Grumpy was glaring at the wall, Bashful was visibly trembling with suppressed feelings, and Doc, Sneezy, and Dopey were arranged at maximum distance from each other like the points of a very unhappy triangle.</p>
+      <p>The cottage that was once warm and full of whistling and small disasters is now <span class="underline">just full of small disasters.</span> I need to do something. I just don't know what yet.</p>
+    </div>
+  </div>
+  <div class="page-num">5</div>
+</div>
+
+<!-- ══════════════════════════════════════ SLIDE 6: DEC 1 — THE PLAN -->
+<div class="slide" id="slide7">
+  <div class="diary-date">December 1st — After Much Reflection 🎄</div>
+  <div class="margin-note">the idea!!</div>
+  <div class="diary-entry">
+    <p>I have been thinking about this for a week. What do you do when seven people you love have quietly stopped being kind to each other? You cannot force it. You cannot lecture it. Grumpy once responded to a lecture of mine by submitting a counter-complaint <em>about</em> the lecture.</p>
+    <p>But here is what I know: people are at their most generous in December. Something about the cold and the candles and the smell of pine makes even the most entrenched grudge feel a little less worth maintaining. It is not permanent, but it is real.</p>
+    <p>So. I am going to host <strong>Secret Santa.</strong></p>
+    <p>The idea is this: everyone draws a name, everyone buys one gift, everyone sits together by the fire on Christmas Eve and — for one evening at least — has to be gracious about it. It forces proximity without requiring apology. It creates a shared project. It is gentle, it is festive, and most importantly, it is <em>structured enough that Grumpy cannot file a complaint against it.</em></p>
+    <div class="divider"></div>
+    <p>The only complication is the feuds. I cannot have Grumpy draw Happy — he would buy him something passive-aggressive and everyone would know it. Same for Sleepy and Bashful. And putting any two of the tonic trio together would be a disaster.</p>
+    <p>So I will simply build that into the rules. Keep the feuding pairs away from each other. The hat can handle the rest.</p>
+    <p>I am going to propose it at dinner tomorrow. I am <em>cautiously optimistic.</em> <span class="pencil">(I am terrified. But cautiously.)</span></p>
+  </div>
+  <div class="page-num">6</div>
+</div>
+
+<!-- ══════════════════════════════════════ SLIDE 7: THE HAT + MATH AWAKENS -->
+<div class="slide" id="slide8">
+  <div class="diary-date">December 2nd — Evening 🥣</div>
+  <div class="margin-note">the hat!!</div>
+  <div class="diary-entry">
+    <p>It worked. I proposed Secret Santa at dinner and nobody walked out. Grumpy said it was "a waste of perfectly good paper" but he took a slip, so. I am counting that as enthusiasm.</p>
+    <p>I wrote all seven names on slips — just the dwarfs, I will coordinate from outside the hat this year — and we passed it around after soup. The rules, as I announced them:</p>
+    <div style="margin: 0.2rem 0 0.65rem 1.3rem; line-height:1.74rem;">
+      <div>① <strong>No one draws themselves.</strong> That is not a gift, that is just shopping.</div>
+      <div>② <strong>No feuding pairs.</strong> To keep the peace and protect the gifts.</div>
+      <div style="margin-left:1.1rem; color:var(--ink-faded); font-style:italic; font-size:1.08rem;">— Grumpy ↔ Happy: <span class="red">forbidden</span></div>
+      <div style="margin-left:1.1rem; color:var(--ink-faded); font-style:italic; font-size:1.08rem;">— Sleepy ↔ Bashful: <span class="red">forbidden</span></div>
+      <div style="margin-left:1.1rem; color:var(--ink-faded); font-style:italic; font-size:1.08rem;">— Sneezy, Doc &amp; Dopey: <span class="red">none of the three may draw either of the others</span></div>
+    </div>
+    <p>Everyone drew a name. We had apple cider. Happy whistled one bar of something and stopped himself. <em>Growth.</em> Bashful smiled at least twice. Even Doc seemed, if not warm, then at least room temperature.</p>
+    <p>I went to bed feeling genuinely pleased. And then I <span class="underline">couldn't sleep</span> because something felt off. Something <em>mathematical.</em></p>
+  </div>
+  <div class="math-reveal" data-label="← suddenly, mathematics">
+    <p>Wait. The constraint groups are asymmetric — two separate pairs of two, plus one group of three. Does each dwarf actually have an <strong>equal chance</strong> of drawing any of their eligible recipients? Or does the structure of the rules quietly tilt the odds?</p>
+    <p style="color:var(--pencil); font-size:0.98rem; margin-top:0.4rem;">I got out of bed and started counting.</p>
+  </div>
+  <div class="page-num">7</div>
+</div>
+
+<!-- ══════════════════════════════════════ SLIDE 8: THE COUNTING -->
+<div class="slide" id="slide9">
+  <div class="diary-date">December 2nd — 2:00 in the morning 🕑</div>
+  <div class="margin-note">couldn't sleep</div>
+  <div class="diary-entry" style="margin-bottom:0.4rem;">
+    <p>Made chamomile. First cup. Started listing every possible way the names could have been drawn. Just the seven dwarfs for now, since I'm coordinating from outside the hat this year.</p>
+  </div>
+  <div class="counting-step"><span class="step-num">①</span><span>Seven people, all drawing different names. Total possible arrangements: <strong>7! = 5,040.</strong></span></div>
+  <div class="counting-step"><span class="step-num">②</span><span>Now cross out any arrangement where someone draws themselves, or draws a feud-partner. Each forbidden pair eliminates a whole swathe of arrangements.</span></div>
+  <div class="counting-step"><span class="step-num">③</span><span>After all the crossing out…</span></div>
+  <div style="margin:0.6rem 0 0.3rem;">
+    <div class="big-handwritten">288</div>
+    <div style="font-size:1.08rem; color:var(--ink-faded); margin-top:0.1rem;">legal arrangements survive. Out of 5,040.</div>
+  </div>
+  <div class="diary-entry">
+    <p>Now the question keeping me up: within those 288, does each dwarf have an <em>equal shot</em> at drawing any person they're eligible for?</p>
+  </div>
+  <div class="sticky blue-note" style="transform:rotate(-1.5deg); margin-top:0.5rem;">
+    If fair: each eligible name should appear equally often across all 288. But the constraint groups aren't the same size. This seems suspicious. 🍵
+  </div>
+  <div class="page-num">8</div>
+</div>
+
+<!-- ══════════════════════════════════════ SLIDE 9: THE TABLE -->
+<div class="slide" id="slide10">
+  <div class="diary-date">December 2nd — 3:00 in the morning 🕒</div>
+  <div class="margin-note">oh no</div>
+  <div class="diary-entry" style="margin-bottom:0.4rem;">
+    <p>Second cup. I drew up a full probability table — rows are who's drawing, columns are who they might get, each cell is the probability across all 288 valid arrangements. <em>Reader. It is not fair.</em></p>
+  </div>
+  <div class="prob-table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th class="row-header">drawing → gets</th>
+          <th>😤 Grumpy</th><th>😊 Happy</th><th>😴 Sleepy</th><th>😬 Bashful</th><th>🤧 Sneezy</th><th>🤓 Doc</th><th>💤 Dopey</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>😤 Grumpy</td><td class="forbidden">✗</td><td class="forbidden">✗</td><td class="low-prob">12.5%</td><td class="low-prob">12.5%</td><td class="high-prob">25%</td><td class="high-prob">25%</td><td class="high-prob">25%</td></tr>
+        <tr><td>😊 Happy</td><td class="forbidden">✗</td><td class="forbidden">✗</td><td class="low-prob">12.5%</td><td class="low-prob">12.5%</td><td class="high-prob">25%</td><td class="high-prob">25%</td><td class="high-prob">25%</td></tr>
+        <tr><td>😴 Sleepy</td><td class="low-prob">12.5%</td><td class="low-prob">12.5%</td><td class="forbidden">✗</td><td class="forbidden">✗</td><td class="high-prob">25%</td><td class="high-prob">25%</td><td class="high-prob">25%</td></tr>
+        <tr><td>😬 Bashful</td><td class="low-prob">12.5%</td><td class="low-prob">12.5%</td><td class="forbidden">✗</td><td class="forbidden">✗</td><td class="high-prob">25%</td><td class="high-prob">25%</td><td class="high-prob">25%</td></tr>
+        <tr><td>🤧 Sneezy</td><td class="equal-prob">25%</td><td class="equal-prob">25%</td><td class="equal-prob">25%</td><td class="equal-prob">25%</td><td class="forbidden">✗</td><td class="forbidden">✗</td><td class="forbidden">✗</td></tr>
+        <tr><td>🤓 Doc</td><td class="equal-prob">25%</td><td class="equal-prob">25%</td><td class="equal-prob">25%</td><td class="equal-prob">25%</td><td class="forbidden">✗</td><td class="forbidden">✗</td><td class="forbidden">✗</td></tr>
+        <tr><td>💤 Dopey</td><td class="equal-prob">25%</td><td class="equal-prob">25%</td><td class="equal-prob">25%</td><td class="equal-prob">25%</td><td class="forbidden">✗</td><td class="forbidden">✗</td><td class="forbidden">✗</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="table-note">
+    <div class="legend-item"><div class="legend-dot" style="background:#fff8e1;border:1px solid #ffe082;"></div> 12.5% — half as likely as equal</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#e8f5e9;border:1px solid #a5d6a7;"></div> 25% — twice as likely as equal</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#e3f2fd;border:1px solid #90caf9;"></div> 25% — perfectly fair (accidentally!)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#f5efef;border:1px solid #e0b0b0;"></div> ✗ forbidden</div>
+  </div>
+  <div class="page-num">9</div>
+</div>
+
+<!-- ══════════════════════════════════════ SLIDE 10: THE TWIST -->
+<div class="slide" id="slide11">
+  <div class="diary-date">December 2nd — 4:00 in the morning 🕓</div>
+  <div class="margin-note">!!!</div>
+  <div class="diary-entry" style="margin-bottom:0.4rem;">
+    <p>Third cup. Here is the part that kept me staring at the ceiling: it is not that <em>everyone</em> has unequal odds. The unfairness is specific.</p>
+  </div>
+  <div class="insight-grid">
+    <div class="insight-card">
+      <h3>😤😊 Grumpy &amp; Happy · 😴😬 Sleepy &amp; Bashful<br><span class="red">— UNFAIR</span></h3>
+      <p>Each has 5 eligible people. But the odds are <em>not</em> 1-in-5 across the board:</p>
+      <div style="margin:0.35rem 0;">
+        <span class="prob-chip low">other pair member: 12.5%</span>
+        <span class="prob-chip high">trio member: 25%</span>
+      </div>
+      <p>The feuding trio is <strong>twice as likely</strong> to end up in your draw as the other pair. Structurally biased, invisibly, from a hat that looked perfectly innocent.</p>
+    </div>
+    <div class="insight-card fair">
+      <h3>🤧🤓💤 Sneezy, Doc &amp; Dopey<br><span class="forest-c">— accidentally fair??</span></h3>
+      <p>Each has 4 eligible people — and draws all four with exactly equal odds:</p>
+      <div style="margin:0.35rem 0;">
+        <span class="prob-chip eq">each pair-member: 25%</span>
+      </div>
+      <p>Their eligible pool is <em>symmetrically constrained</em> with respect to each other, so the bias cancels. They got fairness for free. Without deserving it, I might add.</p>
+    </div>
+  </div>
+  <div class="diary-entry" style="margin-top:0.6rem;">
+    <p><span class="pencil">I cannot believe Sneezy, Doc, and Dopey — the men responsible for the Great Tonic Catastrophe — have the most statistically equitable outcomes in this cottage.</span></p>
+  </div>
+  <div class="page-num">10</div>
+</div>
+
+<!-- ══════════════════════════════════════ SLIDE 11: THE WHY -->
+<div class="slide" id="slide12">
+  <div class="diary-date">December 2nd — 5:00 in the morning 🕔</div>
+  <div class="margin-note">the maths of it</div>
+  <div class="diary-entry" style="margin-bottom:0.4rem;">
+    <p>Fourth cup. Trying to put into words <em>why</em> this happens, in case I ever need to explain it to someone. <span class="pencil">(I won't. But just in case.)</span></p>
+  </div>
+  <div style="max-width:720px; width:100%;">
+    <div class="why-step">
+      <div class="why-icon">🔗</div>
+      <div>
+        <h3>Forbidden draws make everything quietly correlated</h3>
+        <p>When you rule out certain pairings, you don't just remove those outcomes — you shift the weight of all the remaining 288. Every dwarf's draw is invisibly tied to everyone else's, like a very tense game of musical chairs.</p>
+      </div>
+    </div>
+    <div class="why-step">
+      <div class="why-icon">⚖️</div>
+      <div>
+        <h3>Symmetric constraints → fair. Asymmetric → tilted.</h3>
+        <p>Grumpy can draw Sleepy, Bashful, Sneezy, Doc, or Dopey. But Sleepy and Bashful are <em>also</em> blocked from each other — meaning those slots are harder to fill and appear less frequently in valid arrangements. The trio are only blocked within their own group, making their slots more available. So valid arrangements where Grumpy draws someone from the trio are simply more common than ones where he draws Sleepy or Bashful. Two-to-one more common, exactly.</p>
+      </div>
+    </div>
+    <div class="why-step">
+      <div class="why-icon">🎲</div>
+      <div>
+        <h3>A fair hat draw ≠ a fair outcome</h3>
+        <p>Our hat picked uniformly from the 288 valid arrangements — all equally likely. But "each arrangement is equally likely" is not the same as "each person has equal odds of drawing each eligible recipient." True fairness would need deliberately balanced cycles, not rejection sampling. Which is a lot to ask on a Tuesday in December.</p>
+      </div>
+    </div>
+  </div>
+  <div class="page-num">11</div>
+</div>
+
+<!-- ══════════════════════════════════════ SLIDE 12: DOC SUSPECTS + SNOW WHITE EXPLAINS -->
+<div class="slide" id="slide13">
+  <div class="diary-date">December 3rd — After Breakfast ☕</div>
+  <div class="margin-note">the conversation</div>
+  <div class="diary-entry" style="margin-bottom:0.5rem;">
+    <p>Doc cornered me in the kitchen this morning. He had a look on his face that I've come to recognize — the one that means <em>"I have been thinking about something and I am about to be both right and annoying about it."</em></p>
+  </div>
+  <div class="dialogue-block">
+    <div class="speech-bubble doc">
+      <div class="speaker-tag doc-tag">DOC 🤓</div>
+      Snow White, I've been thinking about the Secret Santa draw. Something feels… off. I can't quite put my finger on it, but intuitively, with our particular set of restrictions, I don't think the probability distribution is uniform across eligible recipients. The asymmetry of the constraint groups seems like it would…
+    </div>
+    <div class="speech-bubble sw">
+      <div class="speaker-tag sw-tag">SNOW WHITE 👸</div>
+      Yes, Doc. I know.
+    </div>
+    <div class="speech-bubble doc">
+      <div class="speaker-tag doc-tag">DOC 🤓</div>
+      You — you know? I was up half the night with this. Have you already worked it out?
+    </div>
+    <div class="speech-bubble sw long">
+      <div class="speaker-tag sw-tag">SNOW WHITE 👸</div>
+      I was up the <em>entire</em> night with this. Sit down. So: there are 288 valid arrangements. The hat draws uniformly from those 288. But "uniform over arrangements" is not the same as "uniform over eligible recipients." Because Grumpy — for example — can draw five people, but the arrangements where he draws Sleepy or Bashful are rarer than those where he draws you, Sneezy, or Dopey. The reason is that Sleepy and Bashful are <em>also</em> blocked from each other, which makes those arrangements harder to complete. Your group — you three — are only blocked from each other, so your "slots" are easier to fill, making those arrangements more common. So Grumpy's draw tilts toward your group at <strong>25%</strong> each, while Sleepy and Bashful only come up at <strong>12.5%</strong> each. Exactly half as often.
+    </div>
+    <div class="speech-bubble doc">
+      <div class="speaker-tag doc-tag">DOC 🤓</div>
+      Right. Yes. That's… that's exactly what I was going to say. And ironically, our group — my group — we actually draw the four pair-members at perfectly equal odds?
+    </div>
+    <div class="speech-bubble sw">
+      <div class="speaker-tag sw-tag">SNOW WHITE 👸</div>
+      Perfectly equal. 25% each. You're the only fair ones in the whole draw. By accident. Because your eligible pool happens to be symmetric. Unlike everyone else's.
+    </div>
+    <div class="speech-bubble doc" style="max-width:60%;">
+      <div class="speaker-tag doc-tag">DOC 🤓</div>
+      <em>…I'm choosing to view this as a vindication of my general worldview.</em>
+    </div>
+  </div>
+  <div class="page-num">12</div>
+</div>
+
+<!-- ══════════════════════════════════════ SLIDE 13: CLOSING -->
+<div class="slide" id="slide14">
+  <div class="diary-date">December 3rd — Evening 🎄</div>
+  <div class="margin-note">the moral</div>
+  <div class="diary-entry">
+    <p>I told no one else. The gifts were exchanged. The cider was consumed. Grumpy said his gift was "acceptable," which from him is the equivalent of a standing ovation. Bashful blushed when he opened his — <em>pleasantly,</em> for once. Even Sleepy managed to stay awake for the unwrapping, which is more than he did for the awards ceremony.</p>
+    <p>But I keep thinking about what the numbers revealed. A draw that <em>feels</em> random — everyone pulling a folded slip from the same hat — can still be quietly, structurally biased. Not because anyone cheated. Not because the hat was rigged. But because the <strong>shape of the constraints</strong> creates an uneven landscape of valid outcomes, and some names just appear more often in that landscape than others.</p>
+  </div>
+  <div class="takeaway-grid">
+    <div class="takeaway-chip"><div class="tnum">288</div><p>valid draws out of 5,040 possible arrangements</p></div>
+    <div class="takeaway-chip"><div class="tnum">2×</div><p>more likely to draw a trio member than the other pair</p></div>
+    <div class="takeaway-chip"><div class="tnum">4 of 7</div><p>dwarfs had quietly unfair odds from a "random" hat</p></div>
+  </div>
+  <div class="diary-entry" style="margin-top:0.7rem;">
+    <p><span class="underline">Random ≠ Fair.</span> The structure of your rules shapes the space of your outcomes. And that space is rarely as equal as it looks from the outside.</p>
+    <p>Next year I am constructing a deliberately balanced assignment cycle. Or just buying everyone the same candle. <span class="pencil">(Beeswax. They'd like it.)</span></p>
+  </div>
+  <div class="closing-sig">— Snow White xo</div>
+  <div class="page-num">13</div>
+</div>
+
+<!-- ══════════════════════════════════════ NAV -->
+<nav class="nav">
+  <button onclick="changeSlide(-1)">← prev</button>
+  <span class="counter" id="counter">1 / 14</span>
+  <button onclick="changeSlide(1)">next →</button>
+</nav>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  let current = 0;
+
+  function showSlide(n) {
+    slides[current].classList.remove('active');
+    slides[current].style.display = 'none';
+    current = (n + slides.length) % slides.length;
+    slides[current].style.removeProperty('display');
+    slides[current].style.display = 'flex';
+    void slides[current].offsetWidth;
+    slides[current].classList.add('active');
+    slides[current].scrollTop = 0;
+    document.getElementById('counter').textContent = `${current + 1} / ${slides.length}`;
+  }
+
+  function changeSlide(dir) { showSlide(current + dir); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') changeSlide(1);
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') changeSlide(-1);
+  });
+
+  // Hide all first, then show slide 0 properly
+  slides.forEach(s => { s.style.display = 'none'; });
+  showSlide(0);
+</script>
+</body>
+</html>
