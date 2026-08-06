@@ -33,7 +33,7 @@ namespace ApiTests.Commands
         [Fact]
         public async Task Dispatch_RoutesToCorrectCommand()
         {
-            var fakeCmd = new FakeCommand("/ping", false, CommandResult.Ok("pong"));
+            var fakeCmd = new FakeCommand("/ping", false, CommandResult.OkMessage("pong"));
             var dispatcher = new CommandDispatcher(new[] { fakeCmd });
             var log = NoOpLogBuffer.Create();
 
@@ -47,7 +47,7 @@ namespace ApiTests.Commands
         [Fact]
         public async Task Dispatch_ReturnsUnknownForUnrecognizedCommand()
         {
-            var fakeCmd = new FakeCommand("/ping", false, CommandResult.Ok("pong"));
+            var fakeCmd = new FakeCommand("/ping", false, CommandResult.OkMessage("pong"));
             var dispatcher = new CommandDispatcher(new[] { fakeCmd });
             var log = NoOpLogBuffer.Create();
 
@@ -61,7 +61,7 @@ namespace ApiTests.Commands
         [Fact]
         public async Task Dispatch_RejectsUnauthorizedUserForRestrictedCommand()
         {
-            var fakeCmd = new FakeCommand("/secret", true, CommandResult.Ok("secret data"));
+            var fakeCmd = new FakeCommand("/secret", true, CommandResult.OkMessage("secret data"));
             var dispatcher = new CommandDispatcher(new[] { fakeCmd });
             var log = NoOpLogBuffer.Create();
 
@@ -75,7 +75,7 @@ namespace ApiTests.Commands
         [Fact]
         public async Task Dispatch_AllowsUnauthorizedUserForOpenCommand()
         {
-            var fakeCmd = new FakeCommand("/ping", false, CommandResult.Ok("pong"));
+            var fakeCmd = new FakeCommand("/ping", false, CommandResult.OkMessage("pong"));
             var dispatcher = new CommandDispatcher(new[] { fakeCmd });
             var log = NoOpLogBuffer.Create();
 
@@ -89,7 +89,7 @@ namespace ApiTests.Commands
         [Fact]
         public async Task Dispatch_AllowsAuthorizedUserForRestrictedCommand()
         {
-            var fakeCmd = new FakeCommand("/add", true, CommandResult.Ok("added"));
+            var fakeCmd = new FakeCommand("/add", true, CommandResult.OkMessage("added"));
             var dispatcher = new CommandDispatcher(new[] { fakeCmd });
             var log = NoOpLogBuffer.Create();
 
@@ -103,7 +103,7 @@ namespace ApiTests.Commands
         [Fact]
         public async Task Dispatch_PassesMultiWordRemainderAsSingleArg()
         {
-            var fakeCmd = new FakeCommand("/add", true, CommandResult.Ok("ok"));
+            var fakeCmd = new FakeCommand("/add", true, CommandResult.OkMessage("ok"));
             var dispatcher = new CommandDispatcher(new[] { fakeCmd });
             var log = NoOpLogBuffer.Create();
 
@@ -117,7 +117,7 @@ namespace ApiTests.Commands
         [Fact]
         public async Task Dispatch_ParsesSingleWordArgCorrectly()
         {
-            var fakeCmd = new FakeCommand("/add", true, CommandResult.Ok("ok"));
+            var fakeCmd = new FakeCommand("/add", true, CommandResult.OkMessage("ok"));
             var dispatcher = new CommandDispatcher(new[] { fakeCmd });
             var log = NoOpLogBuffer.Create();
 
@@ -131,7 +131,7 @@ namespace ApiTests.Commands
         [Fact]
         public async Task Dispatch_SetsNullArgForBareCommand()
         {
-            var fakeCmd = new FakeCommand("/ping", false, CommandResult.Ok("pong"));
+            var fakeCmd = new FakeCommand("/ping", false, CommandResult.OkMessage("pong"));
             var dispatcher = new CommandDispatcher(new[] { fakeCmd });
             var log = NoOpLogBuffer.Create();
 
@@ -145,7 +145,7 @@ namespace ApiTests.Commands
         [Fact]
         public async Task Dispatch_PassesCommandNameLowercased()
         {
-            var fakeCmd = new FakeCommand("/ping", false, CommandResult.Ok("pong"));
+            var fakeCmd = new FakeCommand("/ping", false, CommandResult.OkMessage("pong"));
             var dispatcher = new CommandDispatcher(new[] { fakeCmd });
             var log = NoOpLogBuffer.Create();
 
@@ -171,7 +171,7 @@ namespace ApiTests.Commands
         [Fact]
         public async Task Dispatch_HandlesNullMessage()
         {
-            var fakeCmd = new FakeCommand("/ping", false, CommandResult.Ok("pong"));
+            var fakeCmd = new FakeCommand("/ping", false, CommandResult.OkMessage("pong"));
             var dispatcher = new CommandDispatcher(new[] { fakeCmd });
             var log = NoOpLogBuffer.Create();
 
