@@ -10,6 +10,7 @@ namespace Boltzenberg.Functions.Logging
 {
     public class LogBuffer
     {
+        private string heading;
         private StringBuilder sbLog;
         private bool writeOnClose;
 
@@ -20,8 +21,8 @@ namespace Boltzenberg.Functions.Logging
         public LogBuffer(string heading, bool writeOnClose)
         {
             this.writeOnClose = writeOnClose;
-            this.sbLog = new StringBuilder(heading);
-            this.sbLog.AppendLine();
+            this.heading = heading;
+            this.sbLog = new StringBuilder();
         }
 
         public void Info(string format, params object[] args)
@@ -76,9 +77,9 @@ namespace Boltzenberg.Functions.Logging
 
         public async Task Close()
         {
-            if (this.writeOnClose)
+            if (this.writeOnClose && this.sbLog.Length > 0)
             {
-                await Telegram.LogAsync(this.sbLog.ToString());
+                await Telegram.LogAsync(this.heading + Environment.NewLine + this.sbLog.ToString());
             }
         }
 
